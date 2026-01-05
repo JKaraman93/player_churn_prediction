@@ -186,5 +186,3 @@ The project is structured to support:
 * Avoidance of Python UDFs where possible
 * Deterministic randomness for reproducibility
 * Databricks‑friendly architecture
-
---
