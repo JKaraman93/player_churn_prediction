@@ -1,7 +1,7 @@
 from pyspark.sql import functions as F
 
 
-def generate_transactions(players_df):
+def generate_financial_transactions(players_df):
     df = (
         players_df
         .sample(fraction=0.4)
