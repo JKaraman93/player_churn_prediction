@@ -14,4 +14,3 @@ def assign_lifecycle(df_players):
             """)
         )
     )
-    return df_players
