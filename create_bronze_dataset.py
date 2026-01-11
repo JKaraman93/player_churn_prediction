@@ -10,10 +10,8 @@ from src.ingestion.generate_sessions import generate_gameplay_sessions
 from src.ingestion.generate_transactions import generate_financial_transactions
 from src.ingestion.churn_label_generator import generate_churn_labels
 from src.ingestion.generate_balance import assign_balance
+
 config_ = config.DataGenConfig()
-
-
-#os.environ["SPARK_LOCAL_IP"] = "192.168.182.129"  # replace with your VM IP if needed
 
 # Set logging level to reduce console warnings
 spark = SparkSession.builder.master("local[*]").appName('app_name').getOrCreate()
@@ -28,13 +26,8 @@ df_money_transactions = generate_financial_transactions(df_players)
 df_churn = generate_churn_labels(df_sessions, config_)
 
 df_players.write.mode("append").parquet("./data/bronze/players")
-
-# Sessions
 df_sessions.write.mode("append").partitionBy("session_date").parquet("./data/bronze/sessions")
-
-# Transactions
 df_money_transactions.write.mode("append").parquet("./data/bronze/transactions")
 df_churn.write.mode("append").parquet("./data/bronze/churn_labels")
 
-df_churn
 print ('end')
