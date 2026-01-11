@@ -1,0 +1,75 @@
+novibet-ml-player-engagement/
+│
+├── README.md
+├── architecture/
+│   ├── system_architecture.png
+│   └── data_flow_diagram.png
+│
+├── data/
+│   ├── bronze/
+│   ├── silver/
+│   └── gold/
+│
+├── notebooks/
+│   ├── 01_eda_player_behavior.ipynb
+│   ├── 02_feature_engineering.ipynb
+│   ├── 03_churn_model_training.ipynb
+│   ├── 04_recommender_model_training.ipynb
+│   ├── 05_model_evaluation.ipynb
+│
+├── src/
+│   ├── ingestion/
+│   │   ├── adf_pipeline_definition.json
+│   │   └── data_validation.py
+│   │
+│   ├── features/
+│   │   ├── feature_builder.py
+│   │   ├── feature_definitions.yaml
+│   │   └── feature_store.py
+│   │
+│   ├── models/
+│   │   ├── churn/
+│   │   │   ├── train.py
+│   │   │   ├── predict.py
+│   │   │   └── evaluation.py
+│   │   │
+│   │   ├── recommender/
+│   │   │   ├── als_model.py
+│   │   │   ├── hybrid_model.py
+│   │   │   └── evaluation.py
+│   │
+│   ├── pipelines/
+│   │   ├── training_pipeline.py
+│   │   ├── inference_pipeline.py
+│   │   └── retraining_pipeline.py
+│   │
+│   ├── monitoring/
+│   │   ├── data_drift.py
+│   │   ├── model_performance.py
+│   │   └── alerts.py
+│   │
+│   ├── serving/
+│   │   ├── api.py
+│   │   └── schema.py
+│   │
+│   └── utils/
+│       ├── spark_session.py
+│       ├── config.py
+│       └── logging.py
+│
+├── mlflow/
+│   ├── experiments.md
+│   └── model_registry.md
+│
+├── tests/
+│   ├── test_features.py
+│   ├── test_models.py
+│   └── test_pipelines.py
+│
+├── ci_cd/
+│   ├── github_actions.yml
+│   └── deployment_steps.md
+│
+├── requirements.txt
+├── pyproject.toml
+└── .gitignore
