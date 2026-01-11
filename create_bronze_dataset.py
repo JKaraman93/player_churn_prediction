@@ -9,7 +9,7 @@ from src.ingestion.player_lifecycle import assign_lifecycle
 from src.ingestion.generate_sessions import generate_gameplay_sessions
 from src.ingestion.generate_transactions import generate_financial_transactions
 from src.ingestion.churn_label_generator import generate_churn_labels
-from src.ingestion.generate_balance import assign_balance
+from ingestion.generate_initial_balance import assign_balance
 
 config_ = config.DataGenConfig()
 
