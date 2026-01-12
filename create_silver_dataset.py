@@ -22,22 +22,29 @@ silver_players = (
 silver_sessions = (
     sessions_bronze
     .join(
-        silver_players.select("player_id"),
+        silver_players.select("player_id","balance","registration_date"),
         on="player_id",
         how="inner"
     )
     .filter(F.col("session_duration_sec") >= 0)
+    .filter(F.col('session_date') >= F.col('registration_date'))
+    .drop(F.col('registration_date'))
     .withColumn("bet_count", F.coalesce(F.col("bet_count"), F.lit(0)))
     .withColumn("total_bet_amount", F.coalesce(F.col("total_bet_amount"), F.lit(0.0)))
     .withColumn("total_win_amount", F.coalesce(F.col("total_win_amount"), F.lit(0.0)))
+    .withColumn("signed_amount",
+    F.when(F.col("total_win_amount") == 0, -F.col("total_bet_amount"))
+        .otherwise(F.col("total_win_amount"))
+    )
 )
+
 
 
 silver_transactions = (
     transactions_bronze
     .filter(F.col("success_flag") == True)
     .withColumn(
-        "signed_amount",
+        "signed_amount", 
         F.when(F.col("transaction_type") == "deposit", F.col("amount"))
          .when(F.col("transaction_type") == "withdrawal", -F.col("amount"))
          .otherwise(F.lit(0.0))
@@ -47,32 +54,57 @@ silver_transactions = (
 silver_transactions = (
     silver_transactions
     .join(
-        silver_players.select("player_id", "balance"),
+        silver_players.select("player_id", "balance",'registration_date'),
         on="player_id",
         how="left"
     )
+        .filter(F.col('transaction_ts') >= F.col('registration_date'))
+        .drop(F.col('registration_date'))
+
+)
+
+df_all_transaction = ( silver_sessions
+                .select('player_id', 
+                    F.col('session_id').alias('event_id'),   
+                    F.col('session_date').alias('event_ts'), 
+                'signed_amount',
+                'balance')
+                .unionByName(silver_transactions
+                .select('player_id', 
+                  F.col('transaction_id').alias('event_id'),   
+                    F.col('transaction_ts').alias('event_ts'), 
+                    'signed_amount',
+                    'balance'))
 )
 
 
 balance_window = (
     Window
     .partitionBy("player_id")
-    .orderBy("transaction_ts")
+    .orderBy("event_ts")
     .rowsBetween(Window.unboundedPreceding, Window.currentRow)
 )
 
-silver_transactions = (
-    silver_transactions
-    .withColumn(
-        "balance_after_txn",
-        F.col("balance") + F.sum("signed_amount").over(balance_window)
-    )
+txn_with_tentative = df_all_transaction.withColumn(
+    "tentative_balance",
+    F.col("balance") + F.sum("signed_amount").over(balance_window)
 )
 
-silver_transactions = silver_transactions.filter(
-    F.col("balance_after_txn") >= 0
+txn_flagged = txn_with_tentative.withColumn(
+    "is_valid_txn",
+    F.col("tentative_balance") >= 0
 )
 
+txn_neutralized = txn_flagged.withColumn(
+    "effective_signed_amount",
+    F.when(F.col("is_valid_txn"), F.col("signed_amount"))
+     .otherwise(F.lit(0.0))
+)
+
+silver_all_transactions = txn_neutralized.withColumn(
+    "balance_after_txn",
+    F.col("balance") + F.sum("effective_signed_amount").over(balance_window)
+)
 
 silver_churn = (
     churn_label_bronze

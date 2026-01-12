@@ -1,9 +1,12 @@
 # TODO List
 
 ## create_silver_dataset.py
-- [ ] All transactions must happen after player registration
-- [ ] All transactions must respect player balance
-- [ ] The balance must be updated after every money-changing event
+- [x] All transactions must happen after player registration
+- [X] All transactions must respect player balance
+- [ ] Handling of invalid transactions(sessions must be deleted, while financial change success_flag value )
+- [ ] Update session and transaction dataframes with after_txn balance
+- [ ] Create a column with recent balance for each player in player dataframe
+- [ ] Gold data
 
 Generate raw transactions in Bronze
 Ignore balance feasibility at this stage (for simplicity)
