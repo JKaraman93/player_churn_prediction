@@ -20,6 +20,8 @@ df_sessions:
  |-- total_bet_amount: double (nullable = true)
  |-- total_win_amount: double (nullable = true)
  |-- device_type: string (nullable = false)
+ |-- balance: double (nullable = false)
+ |-- signed_amount: double (nullable = false)
  
  df_financial_transactions:
  |-- transaction_id: string (nullable = false)
@@ -28,6 +30,9 @@ df_sessions:
  |-- transaction_type: string (nullable = false)
  |-- amount: double (nullable = true)
  |-- success_flag: boolean (nullable = false)
+ |-- signed_amount: double (nullable = true)
+ |-- balance: double (nullable = true)
+
  
  df_churn_label:
  |-- player_id: string (nullable = false)

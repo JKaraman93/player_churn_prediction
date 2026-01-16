@@ -83,3 +83,30 @@ df.withColumn(
     "moving_avg",
     F.avg("amount").over(w_roll)
 ).show()
+
+
+
+
+
+
+
+
+
+#silver_transactions.filter(F.col('player_id')=='P36956').limit(6).show()
+#6609558
+
+
+
+
+pdf = silver_all_transactions.toPandas()
+balance_after_txn = balance
+for _, row in pdf.iterrows():
+
+    player
+
+    if row.signed_amount > balance_after_txn
+
+
+
+
+
