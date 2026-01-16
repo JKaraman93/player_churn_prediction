@@ -86,6 +86,20 @@ df.withColumn(
 
 
 
+labels = (
+    last_activity
+    .withColumn(
+        "churn_7d",
+        F.expr(
+            f"datediff('{config.end_date}', last_session_date) >= {config.churn_inactivity_days}"
+        )
+    )
+    .withColumn("reference_date", F.lit(config.end_date))
+)
+
+
+
+
 
 
 
@@ -94,18 +108,6 @@ df.withColumn(
 
 #silver_transactions.filter(F.col('player_id')=='P36956').limit(6).show()
 #6609558
-
-
-
-
-pdf = silver_all_transactions.toPandas()
-balance_after_txn = balance
-for _, row in pdf.iterrows():
-
-    player
-
-    if row.signed_amount > balance_after_txn
-
 
 
 

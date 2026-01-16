@@ -13,7 +13,7 @@ def generate_financial_transactions(players_df):
         .withColumn("amount", F.round(F.rand() * 200, 2))
         .withColumn(
             "success_flag",
-            F.expr("CASE WHEN rand() < 0.95 THEN true ELSE false END")
+            F.expr("CASE WHEN rand() < 0.90 THEN true ELSE false END")
         )
         .withColumn("transaction_ts", F.current_timestamp())
         .select(

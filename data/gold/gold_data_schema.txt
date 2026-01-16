@@ -1,0 +1,42 @@
+df_player:
+ |-- player_idx: long (nullable = false)
+ |-- player_id: string (nullable = false)
+ |-- registration_date: date (nullable = true)
+ |-- country: string (nullable = false)
+ |-- age_bucket: string (nullable = false)
+ |-- device_type: string (nullable = false)
+ |-- acquisition_channel: string (nullable = false)
+ |-- risk_segment: string (nullable = false)
+ |-- lifecycle_stage: string (nullable = false)
+ |-- balance: double (nullable = true)
+
+df_sessions: 
+ |-- session_id: string (nullable = false)
+ |-- player_id: string (nullable = false)
+ |-- game_id: string (nullable = true)
+ |-- session_date: date (nullable = false)
+ |-- session_duration_sec: integer (nullable = true)
+ |-- bet_count: integer (nullable = true)
+ |-- total_bet_amount: double (nullable = true)
+ |-- total_win_amount: double (nullable = true)
+ |-- device_type: string (nullable = false)
+ |-- balance: double (nullable = false)
+ |-- signed_amount: double (nullable = false)
+ 
+ df_financial_transactions:
+ |-- transaction_id: string (nullable = false)
+ |-- player_id: string (nullable = false)
+ |-- transaction_ts: timestamp (nullable = false)
+ |-- transaction_type: string (nullable = false)
+ |-- amount: double (nullable = true)
+ |-- success_flag: boolean (nullable = false)
+ |-- signed_amount: double (nullable = true)
+ |-- balance: double (nullable = true)
+
+ 
+ df_churn_label:
+ |-- player_id: string (nullable = false)
+ |-- last_session_date: date (nullable = true)
+ |-- churn_7d: boolean (nullable = true)
+ |-- reference_date: string (nullable = false)
+

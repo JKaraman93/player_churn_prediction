@@ -2,15 +2,12 @@ from src.utils.spark_session import get_spark
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 import pandas as pd
-from pyspark.sql.functions import pandas_udf
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DoubleType, BooleanType
 
 spark = get_spark()
 spark.catalog.clearCache()
 players_bronze = spark.read.parquet("./data/bronze/players")
 sessions_bronze = spark.read.parquet("./data/bronze/sessions")
 transactions_bronze = spark.read.parquet("./data/bronze/transactions")
-churn_label_bronze = spark.read.parquet("./data/bronze/churn_labels")
 
 silver_players = (
     players_bronze
@@ -172,27 +169,6 @@ silver_players_final = (silver_players
                             .drop('balance')
 )
 
-
-silver_churn_final = (
-    churn_label_bronze
-    .join(
-        silver_players.select("player_id"),
-        on="player_id",
-        how="inner"
-    )
-    .withColumn(
-        "reference_date",
-        F.to_date("reference_date")
-    )
-)
-
-
-silver_players_final.limit(1).show()
-silver_sessions_final.limit(1).show()
-silver_transactions_final.limit(1).show()
-silver_churn_final.limit(1).show()
-
-#silver_players_final.write.mode("overwrite").parquet("./data/silver/players")
-#silver_sessions_final.write.mode("overwrite").parquet("./data/silver/sessions")
-#silver_transactions_final.write.mode("overwrite").parquet("./data/silver/transactions")
-#silver_churn_final.write.mode("overwrite").parquet("./data/silver/churn_labels")
+silver_players_final.write.mode("overwrite").parquet("./data/silver/players")
+silver_sessions_final.write.mode("overwrite").parquet("./data/silver/sessions")
+silver_transactions_final.write.mode("overwrite").parquet("./data/silver/transactions")
