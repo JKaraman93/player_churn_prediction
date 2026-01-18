@@ -5,7 +5,7 @@ from pyspark.sql import functions as F
 def generate_churn_labels(sessions_df, config):
     last_activity = (
         sessions_df
-        .groupBy("player_id")
+        .groupBy("player_idx")
         .agg(F.max("session_date").alias("last_session_date"))
     )
 

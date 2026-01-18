@@ -41,12 +41,12 @@ silver_sessions = (
 
 silver_transactions = (
     transactions_bronze
-    .filter(F.col("success_flag") == True)
     .withColumn(
         "signed_amount", 
-        F.when(F.col("transaction_type") == "deposit", F.col("amount"))
-         .when(F.col("transaction_type") == "withdrawal", -F.col("amount"))
+        F.when(F.col("transaction_type") == "deposit", F.col("amount") * F.col("success_flag").cast('int'))
+         .when(F.col("transaction_type") == "withdrawal", -F.col("amount") * F.col("success_flag").cast('int'))
          .otherwise(F.lit(0.0))
+
     )
 )
 
@@ -55,25 +55,28 @@ silver_transactions = (
     .join(
         silver_players.select("player_id", "balance",'registration_date'),
         on="player_id",
-        how="left"
+        how="inner"
     )
         .filter(F.col('transaction_ts') >= F.col('registration_date'))
         .drop(F.col('registration_date'))
 
 )
 
-df_all_transaction = ( silver_sessions
+all_events = ( silver_sessions
+                .withColumn('event_type', F.lit('session'))
                 .select('player_id', 
                     F.col('session_id').alias('event_id'),   
                     F.col('session_date').alias('event_ts'), 
+                'event_type',
                 'signed_amount',
-                'balance')
+                'balance') 
                 .unionByName(silver_transactions
                 .select('player_id', 
-                  F.col('transaction_id').alias('event_id'),   
+                    F.col('transaction_id').alias('event_id'),   
                     F.col('transaction_ts').alias('event_ts'), 
-                    'signed_amount',
-                    'balance'))
+                    F.col('transaction_type').alias('event_type'),
+                'signed_amount',
+                'balance'))
 
 )
 
@@ -106,9 +109,6 @@ silver_all_transactions = txn_neutralized.withColumn(
     F.col("balance") + F.sum("effective_signed_amount").over(balance_window)
 )'''
 
-# 1. Define the new schema by taking the existing one and adding the new column
-
-# 2. Update the UDF (remove the decorator from the function)
 def process_transactions(pdf):
     pdf = pdf.sort_values("event_ts")
     balance = pdf["balance"].iloc[0]
@@ -128,23 +128,23 @@ def process_transactions(pdf):
     return pdf.drop(index=rows_to_delete).reset_index(drop=True)
 
 # 3. Apply the function using applyInPandas with the new_schema
-df_processed = df_all_transaction.groupBy("player_id").applyInPandas(
+silver_money_events = (all_events
+.groupBy("player_id").applyInPandas(
     process_transactions, 
-    schema=df_all_transaction.schema
+    schema=all_events.schema
+)
+.withColumnRenamed('balance', 'balance_after_txn')
 )
 
-
 silver_transactions_final = (silver_transactions
-                       .join(df_processed.select(F.col('event_id').alias('transaction_id'),F.col('balance').alias('balance_after_txn')),
+                       .join(silver_money_events.select(F.col('event_id').alias('transaction_id'),'balance_after_txn'),
                              how='inner',
                              on='transaction_id')
                             .drop('balance')
 )
 
-
-
 silver_sessions_final = (silver_sessions
-                       .join(df_processed.select(F.col('event_id').alias('session_id'), F.col('balance').alias('balance_after_txn')),
+                       .join(silver_money_events.select(F.col('event_id').alias('session_id'),'balance_after_txn'),
                              how='inner',
                              on='session_id')
                            .drop('balance',) 
@@ -153,22 +153,25 @@ silver_sessions_final = (silver_sessions
 player_window = (Window
     .partitionBy("player_id")
     .orderBy("event_ts")
-    .rowsBetween(Window.unboundedPreceding, Window.currentRow)
+    #.rowsBetween(Window.unboundedPreceding, Window.currentRow)
 )
-
 silver_players_final = (silver_players
                         .join(
-                            df_processed                      
+                            silver_money_events                      
                             .withColumn('rn',
                             F.row_number().over(player_window))
                             .filter(F.col('rn')==1)
-                            .select('player_id', F.col('balance').alias('updated_balance')),
+                            .select('player_id', 'balance_after_txn'),
                             on='player_id',
                             how='left'
                             )
-                            .drop('balance')
+                            .withColumn(
+                            "current_balance",
+                            F.coalesce("balance_after_txn", "balance"))
+                            .drop('balance', 'balance_after_txn')
 )
 
 silver_players_final.write.mode("overwrite").parquet("./data/silver/players")
 silver_sessions_final.write.mode("overwrite").parquet("./data/silver/sessions")
 silver_transactions_final.write.mode("overwrite").parquet("./data/silver/transactions")
+silver_money_events.write.mode("overwrite").parquet("./data/silver/money_events")
