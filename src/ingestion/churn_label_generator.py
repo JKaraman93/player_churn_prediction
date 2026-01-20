@@ -6,8 +6,11 @@ def generate_churn_labels(sessions_df, config):
     last_activity = (
         sessions_df
         .groupBy("player_idx")
-        .agg(F.max("session_date").alias("last_session_date"))
-    )
+        .agg(
+            F.min("session_date").alias("first_session_date"),
+
+            F.max("session_date").alias("last_session_date"))
+)
 
     labels = (
         last_activity
