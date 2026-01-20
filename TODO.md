@@ -1,12 +1,12 @@
 # TODO List
 ## generate_sessions
-- [ ] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
+- [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
  Check if it works
 
 
 ## generate_transactions 
 - [X] Try larger percentage of invalid financial transaction to see the change in silver dataset (16.01.26)
-- [ ]  .withColumn("transaction_ts", F.current_timestamp())  select ts between start and end date like sessions
+- [X]  .withColumn("transaction_ts", F.current_timestamp())  select ts between start and end date like sessions
 
 ## create_bronze_dataset.py
 - [X] risk segment "unknown" for new players (16.01.26)
@@ -31,10 +31,10 @@
 - [ ] Boolean /  no_sessions_7d   no_transactions_30d   no_deposits_30d
 
 
-## ground_truth
-[X] rolling window of 7 inactive consecutive days (1 or 0)
+## gold_data_generation.ipynb
+- [X] rolling window of 7 inactive consecutive days (1 or 0)
 for each day look if 1 exists in the next 7 days -> player will churn GOLD labels
-
+- [ ] delete diff_dates from all dataframes
 
     3. One important clarification (not a bug, but critical)
     ⚠ Your churn_7d definition includes the current day
