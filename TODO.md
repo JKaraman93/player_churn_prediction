@@ -32,5 +32,21 @@
 
 
 ## ground_truth
-rolling window of 7 inactive consecutive days (1 or 0)
+[X] rolling window of 7 inactive consecutive days (1 or 0)
 for each day look if 1 exists in the next 7 days -> player will churn GOLD labels
+
+
+    3. One important clarification (not a bug, but critical)
+    ⚠ Your churn_7d definition includes the current day
+    You defined:
+    “inactive for the last 7 days, including the current day”
+    This is valid, but you must be consistent everywhere.
+    That means:
+    num_sessions_7d == 0 → churn state
+    next_7d_churn == true means
+    “there exists a future day where churn_7d == true”
+    ✔ This is acceptable
+    ✔ Just document it clearly in your README / notebook
+    Many teams instead define:
+    inactivity window = previous 7 full days excluding today
+    But your choice is consistent and defensible.
