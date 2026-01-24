@@ -1,10 +1,18 @@
 # TODO List
-## generate_sessions
+
+## General 
+- [ ] Transfer your code from .ipynb to .py files 
+
+df_sessions_rolling : convert null values to 0 
+gold_player_behavior : have to pass the var first event to filter the first 30days
+
+
+## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
  Check if it works
 
 
-## generate_transactions 
+## generate_transactions.py
 - [X] Try larger percentage of invalid financial transaction to see the change in silver dataset (16.01.26)
 - [X]  .withColumn("transaction_ts", F.current_timestamp())  select ts between start and end date like sessions
 - [ ] Each player complete only one session / should be more.
