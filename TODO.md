@@ -2,9 +2,9 @@
 
 ## General 
 - [ ] Transfer your code from .ipynb to .py files 
-
-df_sessions_rolling : convert null values to 0 
-gold_player_behavior : have to pass the var first event to filter the first 30days
+- [X] df_sessions_rolling : convert null values to 0 
+- [X] old_player_behavior : have to pass the var first event to filter the first 30days
+- [ ] more assertions about data consistency 
 
 
 ## generate_sessions.py
