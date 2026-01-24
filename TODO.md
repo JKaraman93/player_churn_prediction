@@ -60,3 +60,9 @@ for each day look if 1 exists in the next 7 days -> player will churn GOLD label
     Many teams instead define:
     inactivity window = previous 7 full days excluding today
     But your choice is consistent and defensible.
+
+
+    ## Logistic Regrsession
+    - [ ] lr_model = model.stages[-1]
+    max(abs(lr_model.coefficients.toArray()))
+    If you see extreme values (>50), scaling or regularization is off.
