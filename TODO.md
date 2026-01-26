@@ -7,6 +7,15 @@
 - [ ] more assertions about data consistency 
 
 
+## Logistic Regrsession
+- [ ] lr_model = model.stages[-1]
+max(abs(lr_model.coefficients.toArray()))
+If you see extreme values (>50), scaling or regularization is off.
+- [ ] construct a pipeline
+- [ ] finetune hyperparameter churn threshold (gridsearch)
+- [ ] CV kfold=5 makes senese ? 
+- [ ] How can you handle imbalance data ?
+
 ## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
  Check if it works
@@ -62,7 +71,3 @@ for each day look if 1 exists in the next 7 days -> player will churn GOLD label
     But your choice is consistent and defensible.
 
 
-    ## Logistic Regrsession
-    - [ ] lr_model = model.stages[-1]
-    max(abs(lr_model.coefficients.toArray()))
-    If you see extreme values (>50), scaling or regularization is off.
