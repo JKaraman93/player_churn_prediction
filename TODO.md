@@ -54,7 +54,6 @@ If you see extreme values (>50), scaling or regularization is off.
 for each day look if 1 exists in the next 7 days -> player will churn GOLD labels
 - [X] create data for ML/ beforehand or before fitting
 
-
     3. One important clarification (not a bug, but critical)
     ⚠ Your churn_7d definition includes the current day
     You defined:
