@@ -8,13 +8,14 @@
 
 
 ## Logistic Regrsession
-- [ ] lr_model = model.stages[-1]
+- [X] lr_model = model.stages[-1]
 max(abs(lr_model.coefficients.toArray()))
 If you see extreme values (>50), scaling or regularization is off.
-- [ ] construct a pipeline
-- [ ] finetune hyperparameter churn threshold (gridsearch)
-- [ ] CV kfold=5 makes senese ? 
-- [ ] How can you handle imbalance data ?
+- [X] construct a pipeline
+- [X] finetune hyperparameter  (gridsearch)
+- [X] churn threshold
+- [X] CV kfold=3 makes senese ? 
+- [X] How can you handle imbalance data ? weightCol -> no resonable improvement
 
 ## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
