@@ -7,6 +7,16 @@
 - [ ] more assertions about data consistency 
 
 
+## Logistic Regrsession
+- [X] lr_model = model.stages[-1]
+max(abs(lr_model.coefficients.toArray()))
+If you see extreme values (>50), scaling or regularization is off.
+- [X] construct a pipeline
+- [X] finetune hyperparameter  (gridsearch)
+- [X] churn threshold
+- [X] CV kfold=3 makes senese ? 
+- [X] How can you handle imbalance data ? weightCol -> no resonable improvement
+
 ## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
  Check if it works
@@ -45,7 +55,6 @@
 for each day look if 1 exists in the next 7 days -> player will churn GOLD labels
 - [X] create data for ML/ beforehand or before fitting
 
-
     3. One important clarification (not a bug, but critical)
     ⚠ Your churn_7d definition includes the current day
     You defined:
@@ -60,3 +69,5 @@ for each day look if 1 exists in the next 7 days -> player will churn GOLD label
     Many teams instead define:
     inactivity window = previous 7 full days excluding today
     But your choice is consistent and defensible.
+
+
