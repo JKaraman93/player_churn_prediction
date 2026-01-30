@@ -5,8 +5,6 @@ def generate_gameplay_sessions(players_df, spark, config):
         f"SELECT explode(sequence(to_date('{config.start_date}'), to_date('{config.end_date}'), interval 1 day)) AS event_date"
     )
 
-    print (date_range)
-
     df = players_df.crossJoin(date_range)
     df = (
         df
@@ -21,6 +19,7 @@ def generate_gameplay_sessions(players_df, spark, config):
         ).otherwise(F.lit(0))
     )
         .filter(F.col("daily_sessions") > 0)
+        .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions"))))
         .withColumn("session_id", F.expr("uuid()"))
         .withColumn("game_id", F.concat(F.lit("G"), (F.rand() * 200).cast("int")))
         .withColumn("session_duration_sec", (F.rand() * 3600).cast("int"))

@@ -58,15 +58,7 @@ def generate_player_profiles(spark, config):
                             ELSE "affiliate"
                             END
                             """))
-    ## risk segment ## 
-    df = df.withColumn("risk_segment",
-                F.expr("""
-                    CASE
-                        WHEN rand() < 0.6 THEN 'low'
-                        WHEN rand() < 0.9 THEN 'medium'
-                        ELSE 'high'
-                    END
-                """))
+
     df.show()
     return df
 
