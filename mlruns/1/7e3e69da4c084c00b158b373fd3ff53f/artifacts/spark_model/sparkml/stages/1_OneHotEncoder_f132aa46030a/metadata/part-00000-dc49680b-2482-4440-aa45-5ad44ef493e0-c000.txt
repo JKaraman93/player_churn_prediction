@@ -1,1 +1,0 @@
-{"class":"org.apache.spark.ml.feature.OneHotEncoderModel","timestamp":1770633737542,"sparkVersion":"4.1.0","uid":"OneHotEncoder_f132aa46030a","paramMap":{"dropLast":false,"inputCols":["country_idx","age_bucket_idx"],"outputCols":["country_ohe","age_bucket_ohe"]},"defaultParamMap":{"dropLast":true,"handleInvalid":"error","outputCol":"OneHotEncoder_f132aa46030a__output"}}
