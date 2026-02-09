@@ -6,8 +6,6 @@ __pycache__/
 data/silver/
 data/bronze/
 data/gold/
-
-
 mlruns/
 mlflow.db
 
