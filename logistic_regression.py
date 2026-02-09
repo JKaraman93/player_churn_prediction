@@ -321,7 +321,6 @@ with mlflow.start_run(run_name='test'):
     cm_pd.to_csv("confusion_matrix.csv", index=False)
     mlflow.log_artifact("confusion_matrix.csv")
 
-
     pdf = test_preds.select("p_churn", "next_7d_churn_idx").toPandas()
 
     precision_arr, recall_arr, _ = precision_recall_curve(
