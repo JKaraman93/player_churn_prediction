@@ -131,8 +131,6 @@ feature_metadata = {
 with open("feature_metadata.json", "w") as f:
     json.dump(feature_metadata, f, indent=2)
 
-
-
 # ---------------------------
 # Train / Val / Test Split
 # ---------------------------

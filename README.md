@@ -1,188 +1,236 @@
-# Player Behavior Modeling – End‑to‑End ML Mini Project
+# Player Churn Prediction – End‑to‑End ML System
 
-## Overview
+## 1. Project Overview
 
-The project demonstrates the full ML lifecycle:
+This project implements a **production‑oriented machine learning pipeline** to predict whether a gaming player will **complete a 7‑day inactivity (churn) period within the next 7 days**.
 
-* Data generation and analysis at scale
-* Feature engineering using distributed computing (Spark)
-* Predictive modeling for player behavior
-* MLOps practices including experiment tracking and deployment‑ready pipelines
+Unlike simple player‑level churn models, the prediction unit here is:
 
-The dataset is **synthetically generated**, but the modeling choices, data structures, and engineering patterns closely resemble real‑world production systems.
+> **(player, reference_date)** → probability of churn completion in *(t, t+7]*
 
----
-
-## Business Context
-
-Online gaming platforms rely heavily on:
-
-* Player engagement monitoring
-* Churn prediction
-* Personalized recommendations
-* Dynamic content delivery
-
-This project focuses on **player session behavior**, modeling how engagement evolves over time and how at‑risk players can be identified based on inactivity patterns.
+This enables **daily risk scoring**, early intervention, and realistic deployment in gaming or subscription environments.
 
 ---
 
-## Project Objectives
+## 2. Business Objective
 
-1. Generate realistic, large‑scale player activity data using Spark
-2. Model daily player behavior using probabilistic processes
-3. Engineer time‑aware features suitable for ML models
-4. Train and evaluate churn / engagement prediction models
-5. Track experiments and metrics using MLflow
-6. Structure the codebase for production‑readiness and scalability
+The system produces a **daily churn‑risk table** that can be consumed by CRM or retention systems:
+
+| player_idx | score_date | p_churn | risk_segment |
+| ---------- | ---------- | ------- | ------------ |
+
+This supports:
+
+* Early retention campaigns
+* Dynamic bonus allocation
+* Monitoring of player health over time
 
 ---
 
-## Architecture Overview
+## 3. Data Architecture
 
-**Tech Stack**
+The project follows a **Bronze → Silver → Gold** medallion structure.
+
+### Bronze
+
+Raw synthetic data:
+
+* Players
+* Sessions
+* Financial transactions
+
+### Silver
+
+Cleaned, time‑consistent event tables used as **source of truth** for ML features.
+
+### Gold
+
+ML‑ready datasets:
+
+#### Player Snapshot
+
+Static attributes per player:
+
+* Country, age bucket, acquisition channel
+* Registration date
+* Lifecycle / risk segment
+* Current balance
+* Last session date, inactivity days
+
+#### Player Behavior (rolling features)
+
+Rolling **7‑day and 30‑day** aggregates per *(player, reference_date)*:
+
+* Net financial and game results
+* Session counts and duration
+* Bet behavior
+* Withdrawal statistics and ratios
+* Historical balances (7d / 30d ago)
+
+#### Labels
+
+Binary target:
+
+> **next_7d_churn = 1** if a 7‑day inactivity window will complete in the next 7 days.
+
+This formulation approximates a **discrete survival / hazard prediction** problem.
+
+---
+
+## 4. Feature Engineering Principles
+
+Key design rules applied:
+
+* **Strict time causality** → features use only data ≤ reference_date
+* **Rolling windows** → 7‑day and 30‑day behavioral summaries
+* **Zero‑activity preservation** → inactive players retained with zero values
+* **Training–serving consistency** → identical window definitions offline and in production
+
+---
+
+## 5. Modeling Approach
+
+### Algorithm
+
+Baseline model:
+
+* **Logistic Regression (Spark ML)**
+
+Chosen for:
+
+* Interpretability
+* Fast training on large data
+* Strong baseline for tabular churn problems
+
+### Preprocessing Pipeline
+
+Spark ML pipeline includes:
+
+* StringIndexing + One‑Hot Encoding for categorical variables
+* Standard scaling for numeric features
+* Vector assembly
+* Class weighting for imbalance handling
+
+### Validation Strategy
+
+* **Time‑based train / validation / test split**
+* **Cross‑validation** on training period
+* **Area Under Precision‑Recall (AUPR)** as primary metric
+
+Why AUPR:
+
+> Churn is **imbalanced**, so PR is more informative than ROC.
+
+### Threshold Optimization
+
+Churn probability is converted to **business risk segments** by selecting a threshold that balances:
+
+* Precision (avoid unnecessary incentives)
+* Recall (capture real churners)
+* F1 score (overall trade‑off)
+
+---
+
+## 6. Experiment Tracking (MLflow)
+
+The training workflow logs:
+
+* Hyperparameters
+* Metrics (AUPR, precision, recall, F1)
+* Selected decision threshold
+* Spark ML pipeline model artifact
+* Environment metadata (Python version, platform, Git commit)
+* Dataset fingerprints / checksums
+
+This ensures **full reproducibility and auditability**.
+
+---
+
+## 7. Evaluation Interpretation
+
+Because the unit is *(player, day)* rather than player‑level:
+
+* Metrics are **per‑day predictions**
+* Multiple positive labels may correspond to the **same churn episode**
+
+Therefore:
+
+> Precision ≠ % of churned players correctly predicted
+
+Instead, metrics measure **daily early‑warning quality**.
+
+---
+
+## 8. Production Inference Design
+
+### Core Principle
+
+Inference must:
+
+> Recompute rolling features from **Silver source data** using only data ≤ score_date.
+
+Gold historical aggregates are **not trusted** in production to avoid leakage or staleness.
+
+### Daily Batch Scoring
+
+For each day *t‑1*:
+
+1. Load Silver sessions, transactions, and player attributes
+2. Aggregate events within **[t‑29, t]**
+3. Build feature vector using the **MLflow‑stored pipeline**
+4. Predict churn probability
+5. Map probability → **risk segment**
+6. Write **append‑only prediction table**
+
+This creates a **deployable ML data product**.
+
+---
+
+## 9. Current Status
+
+Completed:
+
+* Synthetic data generation
+* Gold feature engineering with rolling windows
+* Leakage‑free churn label construction
+* Logistic regression pipeline with class weighting
+* Cross‑validation and threshold tuning
+* MLflow experiment tracking and model logging
+* Production‑aligned inference design
+
+---
+
+## 10. Next Steps
+
+Planned improvements toward full MLOps maturity:
+
+* **Daily batch inference script** with backfill support
+* Prediction table monitoring (drift, score distribution, alerting)
+* Advanced models (Gradient Boosting, XGBoost, LightGBM)
+* Survival analysis / time‑to‑churn modeling
+* CI/CD automation and scheduled retraining
+* Deployment on cloud Spark / Databricks / Kubernetes
+
+---
+
+## 11. Tech Stack
 
 * Python
 * PySpark
-* Spark SQL
+* Spark MLlib
 * MLflow
-* scikit‑learn
-* Databricks‑compatible design
-
-**Data Layers**
-
-* **Bronze**: Raw synthetic events (sessions)
-* **Silver**: Aggregated player‑day features
-* **Gold**: Model‑ready feature tables
+* Parquet data lake structure
 
 ---
 
-## Data Generation Strategy
+## 12. Key Learning Outcomes
 
-### Synthetic Data Rationale
+This project demonstrates ability to:
 
-Due to the absence of real player data, a synthetic dataset is used. The goal is **behavioral realism**, not randomness.
+* Design **time‑aware churn prediction problems**
+* Build **scalable feature pipelines** in Spark
+* Prevent **data leakage** in temporal ML
+* Implement **experiment tracking & reproducibility**
+* Translate ML research into **production batch inference**
 
-Key principles:
-
-* Explicit modeling of inactivity
-* Stochastic session generation
-* Lifecycle‑aware behavior changes
-
-### Player‑Day Modeling
-
-The core modeling unit is **player‑day**, created by cross‑joining:
-
-* Player profiles
-* A complete calendar date range
-
-This ensures that days with **zero activity** are explicitly represented.
-
-### Session Generation
-
-Daily session counts are sampled using a **Poisson‑like process**, with different average rates (λ) depending on the player lifecycle stage:
-
-* Engaged players → higher λ
-* At‑risk players → lower λ
-* Churned players → λ = 0
-
-This allows engagement decay and churn patterns to **emerge naturally** from the data.
-
----
-
-## Feature Engineering
-
-Features are engineered at the **player‑day** level and include:
-
-* Rolling session counts (7d / 14d / 30d)
-* Days since last activity
-* Activity frequency
-* Engagement trend indicators
-
-All features are computed using Spark window functions to ensure scalability.
-
----
-
-## Modeling
-
-### Problem Framing
-
-Primary modeling tasks:
-
-* Binary classification: churn vs active
-* Risk scoring: probability of churn in the next N days
-
-### Algorithms
-
-* Logistic Regression (baseline)
-* Gradient Boosted Trees
-
-Models are trained using scikit‑learn on Spark‑generated feature tables.
-
----
-
-## MLOps & Experiment Tracking
-
-MLflow is used for:
-
-* Experiment tracking
-* Metric logging
-* Model versioning
-
-The project is structured to support:
-
-* CI/CD pipelines
-* Model retraining
-* Future online inference integration
-
----
-
-## Repository Structure
-
-```
-.
-├── data_generation/
-│   ├── config.py
-│   ├── generate_players.py
-│   ├── generate_sessions.py
-│
-├── features/
-│   ├── player_day_features.py
-│
-├── models/
-│   ├── train_model.py
-│   ├── evaluate_model.py
-│
-├── notebooks/
-│   ├── exploration.ipynb
-│
-├── requirements.txt
-├── README.md
-```
-
----
-
-## How to Run
-
-1. Set up the environment:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. Generate synthetic data using Spark
-
-3. Build feature tables
-
-4. Train and evaluate models
-
-5. Review experiments in MLflow
-
----
-
-## Design Decisions (Key Highlights)
-
-* **Player‑day modeling** instead of event‑only modeling
-* Explicit handling of inactivity
-* Avoidance of Python UDFs where possible
-* Deterministic randomness for reproducibility
-* Databricks‑friendly architecture
+These competencies align with **industry ML Engineer roles in gaming, fintech, and subscription platforms**.

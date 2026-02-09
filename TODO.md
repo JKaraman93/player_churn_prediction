@@ -1,11 +1,18 @@
 # TODO List
 
 ## General 
-- [ ] Transfer your code from .ipynb to .py files 
+- [X] Transfer your code from .ipynb to .py files 
 - [X] df_sessions_rolling : convert null values to 0 
 - [X] old_player_behavior : have to pass the var first event to filter the first 30days
 - [ ] more assertions about data consistency 
 
+
+## batch_inference.py
+- [ ] 
+- [ ]
+- [ ]
+- [ ]
+- [ ]
 
 ## Logistic Regrsession
 - [X] lr_model = model.stages[-1]
@@ -18,11 +25,12 @@ If you see extreme values (>50), scaling or regularization is off.
 - [X] How can you handle imbalance data ? weightCol -> no resonable improvement
 - [X] check test run : best_threshold
 - [ ] Drop highly correlated features
+- [ ] convert ohe derived features importance to categorical feature importance 
+- [ ] store the exported items like figures and tables include in mlflow in a separated folder 
 
 ## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
  Check if it works
-
 
 ## generate_transactions.py
 - [X] Try larger percentage of invalid financial transaction to see the change in silver dataset (16.01.26)
@@ -32,7 +40,6 @@ If you see extreme values (>50), scaling or regularization is off.
 ## create_bronze_dataset.py
 - [X] risk segment "unknown" for new players (16.01.26)
 - [X] no sessions for new players (16.01.26)
-
 
 ## create_silver_dataset.py
 - [x] All transactions must happen after player registration (12.01.25)
