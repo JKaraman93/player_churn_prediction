@@ -17,6 +17,7 @@ If you see extreme values (>50), scaling or regularization is off.
 - [X] CV kfold=3 makes senese ? 
 - [X] How can you handle imbalance data ? weightCol -> no resonable improvement
 - [X] check test run : best_threshold
+- [ ] Drop highly correlated features
 
 ## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
