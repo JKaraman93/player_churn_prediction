@@ -8,7 +8,7 @@
 
 
 ## batch_inference.py
-- [ ] 
+- [ ] check if null values should be replaced by 0
 - [ ]
 - [ ]
 - [ ]
