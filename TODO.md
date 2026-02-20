@@ -7,6 +7,9 @@
 - [ ] more assertions about data consistency 
 
 
+## draft.ipynb
+- [ ] data_inference = prepare_data_inference('2024-06-25') must have null values only in transactions columns
+
 ## batch_inference.py
 - [ ] check if null values should be replaced by 0
 - [ ]
