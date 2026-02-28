@@ -131,7 +131,7 @@ window_up_to_30d = (Window.partitionBy('player_idx').orderBy('session_date_days'
 silver_money_events_rolling = (silver_money_events_detail
             .withColumn('balance_7d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_7d))
             .withColumn('net_amount_result_7d', F.coalesce( F.sum('signed_amount').over(window_7d), F.lit(0)))
-            .withColumn('balance_30d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_7d))
+            .withColumn('balance_30d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_30d))
             .withColumn('net_amount_result_30d',F.coalesce( F.sum('signed_amount').over(window_30d), F.lit(0)))
                        )
 

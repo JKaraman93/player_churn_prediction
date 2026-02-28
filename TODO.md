@@ -5,6 +5,8 @@
 - [X] df_sessions_rolling : convert null values to 0 
 - [X] old_player_behavior : have to pass the var first event to filter the first 30days
 - [ ] more assertions about data consistency 
+- [ ] multiple sessions/transactions per day  cause inconsistency between inference and training 
+- [ ] find who players are in inference dataset and not in training, and then explore in which stage they are excluded from the training dataset
 
 
 ## draft.ipynb
