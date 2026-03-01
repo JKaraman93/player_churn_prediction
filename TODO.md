@@ -6,7 +6,8 @@
 - [X] old_player_behavior : have to pass the var first event to filter the first 30days
 - [ ] more assertions about data consistency 
 - [ ] multiple sessions/transactions per day  cause inconsistency between inference and training 
-- [ ] find who players are in inference dataset and not in training, and then explore in which stage they are excluded from the training dataset
+- [ ] find who players are in inference dataset and not in training, and then explore in which stage they are excluded from the training dataset -> there is difference because in training the related rows are sum, so the results will be 0 while in inference the zero rows are excluded. 
+- [ ] transactions has full date including minutes which cause prooblem compairing with a specific date e.g 2025-06-20 05:30 > 2025-06-20 i dont want it
 
 
 ## draft.ipynb
