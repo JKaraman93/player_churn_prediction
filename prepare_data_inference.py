@@ -7,6 +7,8 @@ from pyspark.sql.functions import pandas_udf
 import src.utils.config as config
 from src.ingestion.last_activity_generator import generate_last_activity
 
+
+
 def prepare_data_inference(test_date):
     spark = get_spark()
     spark.catalog.clearCache()
@@ -25,9 +27,9 @@ def prepare_data_inference(test_date):
 
 
     ## dates up to test date
-    silver_money_events = silver_money_events.filter( F.col("event_ts")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date), F.col('event_ts')))
-    sessions_silver = sessions_silver.filter( F.col("session_date")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date), F.col('session_date')))
-    transactions_silver = transactions_silver.filter( F.col("transaction_ts")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date),F.to_date(F.col('transaction_ts'))))
+    silver_money_events = silver_money_events.filter( F.to_date("event_ts")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date), F.to_date('event_ts')))
+    sessions_silver = sessions_silver.filter( F.to_date("session_date")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date), F.to_date('session_date')))
+    transactions_silver = transactions_silver.filter( F.to_date("transaction_ts")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date),F.to_date(F.col('transaction_ts'))))
 
 
     first_last_activity = generate_last_activity(silver_money_events)
@@ -39,7 +41,6 @@ def prepare_data_inference(test_date):
                             on='player_idx',
                             how='left')
     )
-
 
     ## Define the date, you want to inference ## 
     #test_date = config_.end_date
@@ -178,6 +179,7 @@ def prepare_data_inference(test_date):
 
     gold_player_behavior = gold_player_behavior.fillna(0)
     return gold_player_behavior
+
 
 
 

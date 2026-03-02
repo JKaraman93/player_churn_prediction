@@ -9,6 +9,8 @@ players_bronze = spark.read.parquet("./data/bronze/players")
 sessions_bronze = spark.read.parquet("./data/bronze/sessions")
 transactions_bronze = spark.read.parquet("./data/bronze/transactions")
 
+sessions_bronze = sessions_bronze.dropDuplicates(['player_id', 'session_date'])
+
 silver_players = (
     players_bronze
     .dropDuplicates(["player_id"])
@@ -79,35 +81,6 @@ all_events = ( silver_sessions
                 'balance'))
 
 )
-
-'''
-balance_window = (
-    Window
-    .partitionBy("player_id")
-    .orderBy("event_ts")
-    .rowsBetween(Window.unboundedPreceding, Window.currentRow)
-)
-
-txn_with_tentative = df_all_transaction.withColumn(
-    "tentative_balance",
-    F.col("balance") + F.sum("signed_amount").over(balance_window)
-)
-
-txn_flagged = txn_with_tentative.withColumn(
-    "is_valid_txn",
-    F.col("tentative_balance") >= 0
-)
-
-txn_neutralized = txn_flagged.withColumn(
-    "effective_signed_amount",
-    F.when(F.col("is_valid_txn"), F.col("signed_amount"))
-     .otherwise(F.lit(0.0))
-)
-
-silver_all_transactions = txn_neutralized.withColumn(
-    "balance_after_txn",
-    F.col("balance") + F.sum("effective_signed_amount").over(balance_window)
-)'''
 
 def process_transactions(pdf):
     pdf = pdf.sort_values("event_ts")
