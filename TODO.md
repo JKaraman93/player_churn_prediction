@@ -5,21 +5,17 @@
 - [X] df_sessions_rolling : convert null values to 0 
 - [X] old_player_behavior : have to pass the var first event to filter the first 30days
 - [ ] more assertions about data consistency 
-- [ ] multiple sessions/transactions per day  cause inconsistency between inference and training 
-- [ ] find who players are in inference dataset and not in training, and then explore in which stage they are excluded from the training dataset -> there is difference because in training the related rows are sum, so the results will be 0 while in inference the zero rows are excluded. 
+- [X] multiple sessions/transactions per day  cause inconsistency between inference and training 
+- [X] find who players are in inference dataset and not in training, and then explore in which stage they are excluded from the training dataset -> there is difference because in training the related rows are sum, so the results will be 0 while in inference the zero rows are excluded. 
 - [X] transactions has full date including minutes which cause prooblem compairing with a specific date e.g 2025-06-20 05:30 > 2025-06-20 i dont want it
-- [ ] #.filter(F.datediff(F.col("reference_date"), F.col("first_event_date")) > 30) it cause discrepancy between inference and training -> if comment this create columnswith null values -> why?
+- [X] #.filter(F.datediff(F.col("reference_date"), F.col("first_event_date")) > 30) it cause discrepancy between inference and training -> if comment this create columnswith null values -> why? -> because cant compute balances later  than 30 days
 
 
 ## draft.ipynb
-- [ ] data_inference = prepare_data_inference('2024-06-25') must have null values only in transactions columns
+- [X] data_inference = prepare_data_inference('2024-06-25') must have null values only in transactions columns
 
 ## batch_inference.py
-- [ ] check if null values should be replaced by 0
-- [ ]
-- [ ]
-- [ ]
-- [ ]
+- [X] check if null values should be replaced by 0
 
 ## Logistic Regrsession
 - [X] lr_model = model.stages[-1]
@@ -34,6 +30,7 @@ If you see extreme values (>50), scaling or regularization is off.
 - [ ] Drop highly correlated features
 - [ ] convert ohe derived features importance to categorical feature importance 
 - [ ] store the exported items like figures and tables include in mlflow in a separated folder 
+- [ ] **produce player_idx | p_churn | risk_level | scoring_date**
 
 ## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
@@ -42,7 +39,7 @@ If you see extreme values (>50), scaling or regularization is off.
 ## generate_transactions.py
 - [X] Try larger percentage of invalid financial transaction to see the change in silver dataset (16.01.26)
 - [X]  .withColumn("transaction_ts", F.current_timestamp())  select ts between start and end date like sessions
-- [ ] Each player complete only one session / should be more.
+- [ ] Each player complete only one transaction / should be more.
 
 ## create_bronze_dataset.py
 - [X] risk segment "unknown" for new players (16.01.26)
