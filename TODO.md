@@ -1,11 +1,24 @@
 # TODO List
 
 ## General 
-- [ ] Transfer your code from .ipynb to .py files 
+- [X] Transfer your code from .ipynb to .py files 
 - [X] df_sessions_rolling : convert null values to 0 
 - [X] old_player_behavior : have to pass the var first event to filter the first 30days
 - [ ] more assertions about data consistency 
+- [ ] multiple sessions/transactions per day  cause inconsistency between inference and training 
+- [ ] find who players are in inference dataset and not in training, and then explore in which stage they are excluded from the training dataset -> there is difference because in training the related rows are sum, so the results will be 0 while in inference the zero rows are excluded. 
+- [ ] transactions has full date including minutes which cause prooblem compairing with a specific date e.g 2025-06-20 05:30 > 2025-06-20 i dont want it
 
+
+## draft.ipynb
+- [ ] data_inference = prepare_data_inference('2024-06-25') must have null values only in transactions columns
+
+## batch_inference.py
+- [ ] check if null values should be replaced by 0
+- [ ]
+- [ ]
+- [ ]
+- [ ]
 
 ## Logistic Regrsession
 - [X] lr_model = model.stages[-1]
@@ -16,11 +29,14 @@ If you see extreme values (>50), scaling or regularization is off.
 - [X] churn threshold
 - [X] CV kfold=3 makes senese ? 
 - [X] How can you handle imbalance data ? weightCol -> no resonable improvement
+- [X] check test run : best_threshold
+- [ ] Drop highly correlated features
+- [ ] convert ohe derived features importance to categorical feature importance 
+- [ ] store the exported items like figures and tables include in mlflow in a separated folder 
 
 ## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
  Check if it works
-
 
 ## generate_transactions.py
 - [X] Try larger percentage of invalid financial transaction to see the change in silver dataset (16.01.26)
@@ -30,7 +46,6 @@ If you see extreme values (>50), scaling or regularization is off.
 ## create_bronze_dataset.py
 - [X] risk segment "unknown" for new players (16.01.26)
 - [X] no sessions for new players (16.01.26)
-
 
 ## create_silver_dataset.py
 - [x] All transactions must happen after player registration (12.01.25)
