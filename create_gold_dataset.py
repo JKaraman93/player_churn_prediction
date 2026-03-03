@@ -113,6 +113,7 @@ silver_money_events_detail =  (df_pl_date.select('player_idx','reference_date','
  'event_type',
  'signed_amount',
  'balance_after_txn',
+ 'event_ts',
    F.to_date(F.col('event_ts')).alias('reference_date'), 
    'player_idx'),
         how='left', on=['player_idx','reference_date'])
@@ -125,14 +126,23 @@ window_up_to_7d = (Window.partitionBy('player_idx').orderBy('session_date_days')
 window_up_to_30d = (Window.partitionBy('player_idx').orderBy('session_date_days').rangeBetween(Window.unboundedPreceding,-29))
 
 silver_money_events_rolling = (silver_money_events_detail
-            .withColumn('balance_7d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_7d))
             .withColumn('net_amount_result_7d', F.coalesce( F.sum('signed_amount').over(window_7d), F.lit(0)))
-            .withColumn('balance_30d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_30d))
-            .withColumn('net_amount_result_30d',F.coalesce( F.sum('signed_amount').over(window_30d), F.lit(0)))
-                       )
+            .withColumn('net_amount_result_30d',F.coalesce( F.sum('signed_amount').over(window_30d), F.lit(0))))
+
+window_latest_day_session = (Window.partitionBy('player_idx','reference_date').orderBy(F.col("event_ts").desc()))
+
+silver_money_events_rolling = ( silver_money_events_rolling
+    .withColumn("rn", F.row_number().over(window_latest_day_session))
+    .filter(F.col("rn") == 1)
+    .drop("rn")
+)
 
 silver_money_events_rolling = (silver_money_events_rolling
-#.filter(F.datediff(F.col("reference_date"), F.col("first_event_date")) > 30)
+            .withColumn('balance_7d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_7d))
+            .withColumn('balance_30d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_30d)))
+
+silver_money_events_rolling = (silver_money_events_rolling
+.filter(F.datediff(F.col("reference_date"), F.col("first_event_date")) > 30)
 .filter(F.datediff(F.lit(config_.end_date), F.col("reference_date")) > 7)
 .select(
                             'player_idx',
@@ -230,7 +240,7 @@ gold_player_behavior.count()
 
 ## keep only days that follow the first session date of each player since 
 gold_player_behavior = (gold_player_behavior
-#.filter(F.datediff(F.col("reference_date"), F.col("first_session_date")) > 30)     
+.filter(F.datediff(F.col("reference_date"), F.col("first_session_date")) > 30)     
 .filter(F.datediff(F.lit(config_.end_date), F.col("reference_date")) > 7)
 .drop(F.col('first_session_date')) )
 
@@ -283,7 +293,7 @@ target = (sessions_silver_sec
 
 gold_labels = (target
 .select('player_idx', 'reference_date','next_7d_churn')
-#.filter(F.datediff(F.col("reference_date"), F.col("first_session_date")) > 30)
+.filter(F.datediff(F.col("reference_date"), F.col("first_session_date")) > 30)
 .filter(F.datediff(F.lit(config_.end_date), F.col("reference_date")) > 7))
 
 

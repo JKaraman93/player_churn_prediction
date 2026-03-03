@@ -61,8 +61,8 @@ player_behavior = spark.read.parquet("./data/gold/player_behavior")
 player_snapshot = spark.read.parquet("./data/gold/player_snapshot")
 labels = spark.read.parquet("./data/gold/labels")
 
-sample_fraction = 0.2
-mlflow.set_experiment("first experiment")
+sample_fraction = 1.0
+mlflow.set_experiment("second experiment")
 experiment_tags = {
     "data_sample_fraction": sample_fraction, 
     "data_scope": "sampled",

@@ -157,7 +157,8 @@ def prepare_data_inference(test_date):
 
     gold_player_behavior = (player_snapshot
                 .filter(F.col('first_session_date').isNotNull())  # exclude new players
-                #.filter(F.datediff(F.lit(test_date), F.col("last_session_date")) < 7)    # if someone hasn't a session in the last 7 days, he has already churned      
+                .filter(F.datediff(F.lit(test_date), F.col("last_session_date")) < 7)    # if someone hasn't a session in the last 7 days, he has already churned      
+                .filter(F.datediff(F.lit(test_date), F.col("first_session_date")) > 30)    # if someone hasn't a session in the last 7 days, he has already churned      
                 .select('player_idx')
                 .join(silver_money_events_one_date, how='inner', on='player_idx') 
                 .join(transactions_silver_one_date, how='left', on='player_idx') 
