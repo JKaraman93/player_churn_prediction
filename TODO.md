@@ -28,7 +28,7 @@ If you see extreme values (>50), scaling or regularization is off.
 - [X] How can you handle imbalance data ? weightCol -> no resonable improvement
 - [X] check test run : best_threshold
 - [ ] Drop highly correlated features
-- [ ] convert ohe derived features importance to categorical feature importance 
+- [X] convert ohe derived features importance to categorical feature importance 
 - [ ] store the exported items like figures and tables include in mlflow in a separated folder 
 - [ ] **produce player_idx | p_churn | risk_level | scoring_date**
 
