@@ -311,6 +311,11 @@ val_preds.unpersist()
 
 with mlflow.start_run(run_name='train+val') as run:
 
+    mlflow.log_param("train_start", str(train_val_df.agg(F.min("reference_date")).first()[0]))
+    mlflow.log_param("train_end",   str(train_val_df.agg(F.max("reference_date")).first()[0]))
+    mlflow.log_param("test_start",  str(test_df.agg(F.min("reference_date")).first()[0]))
+    mlflow.log_param("test_end",    str(test_df.agg(F.max("reference_date")).first()[0]))
+
     mlflow.log_param("python_version", sys.version)
     mlflow.log_param("platform", platform.platform())
 
@@ -411,7 +416,7 @@ loaded_model = mlflow.spark.load_model(final_model_uri)
 
 with mlflow.start_run(run_name='test'):
     
-    mlflow.set_tag("train_run_id", train_run_id)
+    mlflow.set_tag("train_run_id", final_run_id)
     test_preds = loaded_model.transform(test_df).withColumn("p_churn", vector_to_array("probability")[1])
     test_upr = evaluator.evaluate(test_preds)
 
