@@ -304,6 +304,22 @@ with mlflow.start_run(run_name='thresholds'):
 metrics_df = spark.createDataFrame(results)
 best_threshold = metrics_df.orderBy(F.desc("f1")).first()["threshold"]
 
+pdf = val_preds.select("p_churn", "next_7d_churn_idx").toPandas()
+
+precision_arr, recall_arr, _ = precision_recall_curve(
+    pdf["next_7d_churn_idx"],
+    pdf["p_churn"]
+)
+
+plt.figure()
+plt.plot(recall_arr, precision_arr)
+plt.xlabel("Recall")
+plt.ylabel("Precision")
+plt.title("Precision-Recall Curve")
+plt.savefig("pr_curve.png")
+plt.close()
+mlflow.log_artifact("pr_curve.png")
+
 val_preds.unpersist()
 
 
@@ -404,7 +420,8 @@ with mlflow.start_run(run_name='train+val') as run:
         spark_model=final_model,
         artifact_path='spark_model',
         registered_model_name='SparkLogisticRegression',
-        signature=signature
+        signature=signature,
+        #stage="Production"
     )
 
     final_run_id = run.info.run_id
@@ -438,21 +455,7 @@ with mlflow.start_run(run_name='test'):
     cm_pd.to_csv("confusion_matrix.csv", index=False)
     mlflow.log_artifact("confusion_matrix.csv")
 
-    pdf = test_preds.select("p_churn", "next_7d_churn_idx").toPandas()
 
-    precision_arr, recall_arr, _ = precision_recall_curve(
-        pdf["next_7d_churn_idx"],
-        pdf["p_churn"]
-    )
-
-    plt.figure()
-    plt.plot(recall_arr, precision_arr)
-    plt.xlabel("Recall")
-    plt.ylabel("Precision")
-    plt.title("Precision-Recall Curve")
-    plt.savefig("pr_curve.png")
-    plt.close()
-    mlflow.log_artifact("pr_curve.png")
 
 
 
