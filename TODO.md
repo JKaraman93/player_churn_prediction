@@ -1,5 +1,8 @@
 # TODO List
 
+## Threshold selection 
+- [ ] For a player with predicted churn probability p: EV=p×r×S−C
+
 ## General 
 - [X] Transfer your code from .ipynb to .py files 
 - [X] df_sessions_rolling : convert null values to 0 
