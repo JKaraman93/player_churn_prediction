@@ -9,7 +9,7 @@ from src.ingestion.last_activity_generator import generate_last_activity
 
 
 
-def prepare_data_inference(test_date):
+def prepare_num_data_inference(test_date):
     spark = get_spark()
     spark.catalog.clearCache()
     players_silver = spark.read.parquet("./data/silver/players")

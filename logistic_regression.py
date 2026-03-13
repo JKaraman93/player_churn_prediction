@@ -283,17 +283,6 @@ with mlflow.start_run(run_name='train') as run:
 model_uri = f"runs:/{train_run_id}/spark_model"
 loaded_model = mlflow.spark.load_model(model_uri)
 
-
-'''
-########## validation set ##################
-# log performance in this set
-with mlflow.start_run(run_name='val') as run:
-    mlflow.set_tag("train_run_id", train_run_id)
-    val_preds = loaded_model.transform(val_df).withColumn("p_churn", vector_to_array("probability")[1])
-    val_upr = evaluator.evaluate(val_preds)
-    mlflow.log_metric("upr", val_upr)
-'''
-
 thresholds = [i / 100 for i in range(5, 96, 5)]
 
 
@@ -322,8 +311,9 @@ with mlflow.start_run(run_name='thresholds'):
     metrics_df = spark.createDataFrame(results)
     th_f1 = metrics_df.orderBy(F.desc("f1")).first()["threshold"]
     th_rec_f1_05 = metrics_df.filter(F.col('f1')>0.5).orderBy(F.desc("recall")).first()["threshold"]
-    th_rec_07 = metrics_df.filter(F.col('recall')>0.7).orderBy(F.asc("recall")).first()["threshold"]
-
+    th_rec_08 = metrics_df.filter(F.col('recall')>0.8).orderBy(F.asc("recall")).first()["threshold"]
+    th_flagged_players = (metrics_df.filter(F.col('day_avg_flagged')>F.col('day_avg_churned'))
+    .orderBy(F.asc('day_avg_flagged'))).first()["threshold"]
     pdf = val_preds.select("p_churn", "next_7d_churn_idx").toPandas()
 
     precision_arr, recall_arr, _ = precision_recall_curve(
@@ -344,7 +334,7 @@ val_preds.unpersist()
 
 
 ##### Train the model on train+val set ####
-for th in [th_f1,th_rec_f1_05, th_rec_07] :
+for th in [th_f1, th_rec_f1_05, th_rec_08, th_flagged_players ] :
     run_name_train = 'train+val_' + str(th)
     run_name_test = 'test_' + str(th)
 
