@@ -1,0 +1,9 @@
+aliases:
+  production: '4'
+creation_timestamp: 1773434842206
+deployment_job_id: null
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1773436710674
+name: SparkLogisticRegression_train
+workspace: default

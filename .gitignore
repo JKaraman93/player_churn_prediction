@@ -5,4 +5,4 @@ __pycache__/
 .vscode
 data/silver/
 data/bronze/
-
+data/gold/

@@ -1,0 +1,281 @@
+Below is a one-month, end-to-end mini-project deliberately designed to map one-to-one with Novibet’s Machine Learning Engineer role, covering data analysis, model development, MLOps, deployment, monitoring, and business integration.
+The project is framed in a gaming / betting-adjacent context without relying on proprietary data, which makes it suitable for interviews, take-home discussions, or portfolio demonstration.
+
+Mini Project Proposal
+“Personalized Player Engagement & Recommendation System”
+Business Objective
+
+Design, deploy, and monitor a scalable machine learning system that predicts player behavior and delivers personalized game/content recommendations to increase engagement and retention.
+
+The system should:
+
+Predict likelihood of player churn or inactivity
+
+Generate personalized recommendations (games, promotions, content)
+
+Be production-ready with MLOps, CI/CD, monitoring, and retraining
+
+High-Level Architecture
+
+Data Sources → Data Engineering → Feature Store → ML Models → API → Monitoring → Retraining
+
+Tech Stack (aligned with Novibet):
+
+Python, SQL, PySpark
+
+Databricks (Spark + notebooks)
+
+MLflow (experiments, model registry)
+
+Azure Data Factory (data ingestion orchestration)
+
+Azure Blob Storage / ADLS
+
+Azure ML or Databricks Model Serving
+
+CI/CD (GitHub Actions or Azure DevOps)
+
+Optional: LLM (Azure OpenAI) for content personalization
+
+Week-by-Week Breakdown (1 Month)
+Week 1 – Data Ingestion, Exploration & Feature Engineering
+1. Problem Definition & KPIs
+
+Define clear ML objectives:
+
+Churn Prediction: Will a player become inactive in the next 7 days?
+
+Recommendation Task: Suggest top-N games/content per player
+
+Define KPIs:
+
+Classification: AUC-ROC, Precision@K
+
+Recommendation: MAP@K, Recall@K
+
+Business proxy: Engagement uplift (simulated)
+
+2. Data Sources (Synthetic or Public)
+
+Simulate or use anonymized datasets:
+
+Player profile data (age bucket, region, device)
+
+Gameplay logs (game_id, session_time, bets, wins)
+
+Transaction data (deposits, withdrawals)
+
+Content interaction logs (views, clicks)
+
+Storage
+
+Raw data → Azure Blob Storage (Bronze)
+
+Cleaned data → Silver
+
+Feature tables → Gold
+
+3. Data Ingestion & Orchestration
+
+Use Azure Data Factory to:
+
+Schedule daily ingestion
+
+Validate schema and freshness
+
+Store partitioned Parquet files
+
+4. Data Analysis & Preprocessing (Databricks + PySpark)
+
+Exploratory Data Analysis (EDA)
+
+Missing value handling
+
+Outlier detection
+
+Player activity segmentation (RFM-style)
+
+Feature Engineering
+
+Rolling window features (7d, 30d):
+
+Session count
+
+Average bet size
+
+Game diversity
+
+Time-based features
+
+Player lifecycle features
+
+Week 2 – Model Development & Experimentation
+5. Churn Prediction Model
+
+Algorithms evaluated:
+
+Logistic Regression (baseline)
+
+Random Forest
+
+Gradient Boosting (XGBoost / LightGBM)
+
+Neural Network (optional)
+
+Process
+
+Train/validation split by time
+
+Handle class imbalance
+
+Feature importance analysis
+
+6. Recommendation System
+
+Implement two approaches:
+
+A. Collaborative Filtering
+
+Matrix factorization (ALS with Spark MLlib)
+
+B. Hybrid Recommender
+
+Combine:
+
+Player embeddings
+
+Game metadata
+
+Engagement signals
+
+Evaluate with offline metrics.
+
+7. Experiment Tracking (MLflow)
+
+Log:
+
+Parameters
+
+Metrics
+
+Artifacts
+
+Compare experiments
+
+Register best models in MLflow Model Registry
+
+Week 3 – Pipelines, MLOps & Deployment
+8. Scalable ML Pipelines
+
+Create modular pipelines:
+
+Data preprocessing pipeline
+
+Training pipeline
+
+Inference pipeline
+
+Use:
+
+Databricks Jobs
+
+PySpark for batch scoring
+
+9. CI/CD & MLOps
+
+CI
+
+Linting
+
+Unit tests (feature logic, data validation)
+
+CD
+
+Automatic model registration
+
+Promotion from Staging → Production
+
+Infrastructure as code (optional)
+
+10. Model Deployment
+
+Deploy models as:
+
+REST API (Azure ML / Databricks Serving)
+
+Batch inference for daily recommendations
+
+Endpoints
+
+/predict_churn
+
+/recommend_content
+
+Week 4 – Monitoring, Feedback & Iteration
+11. Model Monitoring
+
+Monitor:
+
+Prediction distributions
+
+Data drift (KS test)
+
+Feature drift
+
+Performance decay
+
+Tools:
+
+MLflow
+
+Custom dashboards (Databricks SQL)
+
+12. Feedback Loop & Retraining
+
+Capture user interaction feedback
+
+Schedule retraining:
+
+Weekly or performance-triggered
+
+Automate rollback if metrics degrade
+
+13. Optional: Generative AI Extension
+
+Use LLM (Azure OpenAI) to:
+
+Generate personalized promotional messages
+
+Summarize player behavior for CRM teams
+
+Enhance recommendation explanations
+
+Final Deliverables
+
+Architecture Diagram
+
+Databricks Notebooks
+
+EDA
+
+Feature Engineering
+
+Model Training
+
+MLflow Experiments & Registry
+
+Deployed API Endpoints
+
+Monitoring Dashboard
+
+README
+
+Business impact
+
+Design decisions
+
+Trade-offs
+
+Presentation Deck
+
+Suitable for Novibet interview discussion

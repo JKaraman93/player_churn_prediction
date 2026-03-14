@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.VectorAssembler","timestamp":1773434827933,"sparkVersion":"4.1.1","uid":"VectorAssembler_b9b1c2b2091d","paramMap":{"inputCols":["numeric_features_scaled","country_ohe","age_bucket_ohe"],"outputCol":"features"},"defaultParamMap":{"handleInvalid":"error","outputCol":"VectorAssembler_b9b1c2b2091d__output"}}
