@@ -21,6 +21,10 @@ def generate_gameplay_sessions(players_df, spark, config):
         .filter(F.col("daily_sessions") > 0)
         .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions"))))
         .withColumn("session_id", F.expr("uuid()"))
+        .withColumn("session_ts",
+            (F.col("event_date").cast("timestamp").cast("long") +
+                (F.rand() * 86400).cast("int")
+            ).cast("timestamp"),)
         .withColumn("game_id", F.concat(F.lit("G"), (F.rand() * 200).cast("int")))
         .withColumn("session_duration_sec", (F.rand() * 3600).cast("int"))
         .withColumn("bet_count", (F.rand() * 20).cast("int"))
@@ -30,12 +34,12 @@ def generate_gameplay_sessions(players_df, spark, config):
             "session_id",
             "player_id",
             "game_id",
-            F.col("event_date").alias("session_date"),
+            F.col("session_ts").alias("session_date"),
             "session_duration_sec",
             "bet_count",
             "total_bet_amount",
             "total_win_amount",
-            "device_type"
+            #"device_type"
         )
     )
                 

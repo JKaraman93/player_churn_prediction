@@ -1,0 +1,16 @@
+creation_timestamp: 1773434869939
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1773434869939
+model_id: null
+name: SparkLogisticRegression_train
+run_id: aa588a64d8044190b9a08c2b9513a8fc
+run_link: null
+source: file:///home/jim/bet/mlruns/911267403923902823/aa588a64d8044190b9a08c2b9513a8fc/artifacts/spark_model
+status: READY
+status_message: null
+storage_location: file:///home/jim/bet/mlruns/911267403923902823/aa588a64d8044190b9a08c2b9513a8fc/artifacts/spark_model
+user_id: null
+version: 2
+workspace: default

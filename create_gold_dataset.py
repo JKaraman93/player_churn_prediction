@@ -52,10 +52,6 @@ df_pl_date = (player_snapshot
 window_7d = (Window.partitionBy('player_idx').orderBy('session_date_days').rangeBetween(-6,0))
 window_30d = (Window.partitionBy('player_idx').orderBy('session_date_days').rangeBetween(-29,0))
 
-
-players_silver.printSchema()
-
-
 ## number of days of pereiod examined is : 182 (3 months)
 assert players_silver.filter(F.col('lifecycle_stage')=='new').count()*182 + df_pl_date.count() == player_snapshot.count()*182
 
@@ -70,7 +66,7 @@ df_sessions_detail = (df_pl_date.select('player_idx','reference_date','registrat
  'total_win_amount',
  'signed_amount',
  'balance_after_txn',
-   F.col('session_date').alias('reference_date'), 
+   F.to_date('session_date').alias('reference_date'), 
    'player_idx'),
         how='left', on=['player_idx','reference_date'])
 .filter( F.col("first_session_date")<= F.col("reference_date"))
@@ -117,6 +113,7 @@ silver_money_events_detail =  (df_pl_date.select('player_idx','reference_date','
  'event_type',
  'signed_amount',
  'balance_after_txn',
+ 'event_ts',
    F.to_date(F.col('event_ts')).alias('reference_date'), 
    'player_idx'),
         how='left', on=['player_idx','reference_date'])
@@ -129,11 +126,20 @@ window_up_to_7d = (Window.partitionBy('player_idx').orderBy('session_date_days')
 window_up_to_30d = (Window.partitionBy('player_idx').orderBy('session_date_days').rangeBetween(Window.unboundedPreceding,-29))
 
 silver_money_events_rolling = (silver_money_events_detail
-            .withColumn('balance_7d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_7d))
             .withColumn('net_amount_result_7d', F.coalesce( F.sum('signed_amount').over(window_7d), F.lit(0)))
-            .withColumn('balance_30d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_30d))
-            .withColumn('net_amount_result_30d',F.coalesce( F.sum('signed_amount').over(window_30d), F.lit(0)))
-                       )
+            .withColumn('net_amount_result_30d',F.coalesce( F.sum('signed_amount').over(window_30d), F.lit(0))))
+
+window_latest_day_session = (Window.partitionBy('player_idx','reference_date').orderBy(F.col("event_ts").desc()))
+
+silver_money_events_rolling = ( silver_money_events_rolling
+    .withColumn("rn", F.row_number().over(window_latest_day_session))
+    .filter(F.col("rn") == 1)
+    .drop("rn")
+)
+
+silver_money_events_rolling = (silver_money_events_rolling
+            .withColumn('balance_7d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_7d))
+            .withColumn('balance_30d_ago', F.last('balance_after_txn', ignorenulls=True).over(window_up_to_30d)))
 
 silver_money_events_rolling = (silver_money_events_rolling
 .filter(F.datediff(F.col("reference_date"), F.col("first_event_date")) > 30)
@@ -151,8 +157,8 @@ silver_money_events_rolling = (silver_money_events_rolling
 silver_money_events_rolling.persist()
 silver_money_events_rolling.count() 
 
-for c in df_sessions_rolling.columns:
-   assert df_sessions_rolling.filter(F.col(c).isNull()).count() == 0
+for c in silver_money_events_rolling.columns:
+   assert silver_money_events_rolling.filter(F.col(c).isNull()).count() == 0
 
 
 
@@ -255,10 +261,11 @@ gold_player_behavior.unpersist()
 # ### Create gold labels
 
 
+
 df_num_of_sessions = (sessions_silver
-.groupBy('player_idx', 'session_date')
-.agg(F.count('*').alias('num_of_session')))
-#.orderBy('player_idx', 'session_date' ))
+    .withColumn('session_date', F.to_date('session_date'))  # Convert to date and assign a proper column name
+    .groupBy('player_idx', 'session_date')  # Group by player_idx and the converted session_date
+    .agg(F.count('*').alias('num_of_session')))
 
 df_sessions = (df_pl_date
 .join(df_num_of_sessions
@@ -298,8 +305,5 @@ assert gold_player_behavior.count() == gold_labels.count()
 player_snapshot.write.mode("overwrite").parquet("./data/gold/player_snapshot")
 gold_player_behavior.write.mode("overwrite").parquet("./data/gold/player_behavior")
 gold_labels.write.mode("overwrite").parquet("./data/gold/labels")
-
-
-
 
 

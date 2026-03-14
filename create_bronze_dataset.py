@@ -24,5 +24,6 @@ df_sessions = generate_gameplay_sessions(df_players, spark, config_)
 df_money_transactions = generate_financial_transactions(df_players)
 
 df_players.write.mode("overwrite").parquet("./data/bronze/players")
-df_sessions.write.mode("overwrite").partitionBy("session_date").parquet("./data/bronze/sessions")
 df_money_transactions.write.mode("overwrite").parquet("./data/bronze/transactions")
+df_sessions.write.mode("overwrite").partitionBy("session_date").parquet("./data/bronze/sessions")
+

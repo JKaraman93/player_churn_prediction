@@ -10,6 +10,9 @@ Unlike simple player‑level churn models, the prediction unit here is:
 
 This enables **daily risk scoring**, early intervention, and realistic deployment in gaming or subscription environments.
 
+Model targets players with at **least 30 days historical activity** to ensure stable rolling feature computation and prevent cold-start bias.
+
+
 ---
 
 ## 2. Business Objective
@@ -222,15 +225,3 @@ Planned improvements toward full MLOps maturity:
 * Parquet data lake structure
 
 ---
-
-## 12. Key Learning Outcomes
-
-This project demonstrates ability to:
-
-* Design **time‑aware churn prediction problems**
-* Build **scalable feature pipelines** in Spark
-* Prevent **data leakage** in temporal ML
-* Implement **experiment tracking & reproducibility**
-* Translate ML research into **production batch inference**
-
-These competencies align with **industry ML Engineer roles in gaming, fintech, and subscription platforms**.
