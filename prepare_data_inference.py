@@ -8,7 +8,6 @@ import src.utils.config as config
 from src.ingestion.last_activity_generator import generate_last_activity
 
 
-
 def prepare_num_data_inference(test_date):
     spark = get_spark()
     spark.catalog.clearCache()
@@ -25,12 +24,10 @@ def prepare_num_data_inference(test_date):
     silver_money_events = silver_money_events.withColumn( "player_idx",
         F.regexp_replace("player_id", "[^0-9]", "").cast("long")).drop('player_id')
 
-
     ## dates up to test date
     silver_money_events = silver_money_events.filter( F.to_date("event_ts")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date), F.to_date('event_ts')))
     sessions_silver = sessions_silver.filter( F.to_date("session_date")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date), F.to_date('session_date')))
     transactions_silver = transactions_silver.filter( F.to_date("transaction_ts")<= F.lit(test_date)).withColumn('days_diff', F.date_diff(F.lit(test_date),F.to_date(F.col('transaction_ts'))))
-
 
     first_last_activity = generate_last_activity(silver_money_events)
     player_snapshot = (players_silver
@@ -41,10 +38,6 @@ def prepare_num_data_inference(test_date):
                             on='player_idx',
                             how='left')
     )
-
-    ## Define the date, you want to inference ## 
-    #test_date = config_.end_date
-
     sessions_silver_one_date = (sessions_silver
     .filter((F.col('days_diff') < 30) & (F.col('days_diff') >=0))
     .groupBy('player_idx')
@@ -63,7 +56,6 @@ def prepare_num_data_inference(test_date):
     
     for c in sessions_silver_one_date.columns:
         assert sessions_silver_one_date.filter(F.col(c).isNull()).count() == 0
-
 
     silver_money_events_net = (silver_money_events
     .filter((F.col('days_diff') < 30) & (F.col('days_diff') >=0))
@@ -142,19 +134,15 @@ def prepare_num_data_inference(test_date):
         F.sum(F.when(F.col('transaction_type')=='deposit',1).otherwise(0)).alias('deposit_count_30d'),
         F.sum(F.when(F.col('transaction_type')=='withdrawal',1).otherwise(0)).alias('withdrawal_count_30d'),
     )
-    .withColumn(        'withdrawal_ratio',
+    .withColumn( 'withdrawal_ratio',
         F.when(
                 F.col("deposit_count_30d") > 0,
                 F.col("withdrawal_count_30d") / F.col("deposit_count_30d")
-            ).otherwise(F.lit(0.0))
-    )
-    )
+            ).otherwise(F.lit(0.0)) ) )
 
     for c in transactions_silver_one_date.columns:
         assert transactions_silver_one_date.filter(F.col(c).isNull()).count() == 0
     
-
-
     gold_player_behavior = (player_snapshot
                 .filter(F.col('first_session_date').isNotNull())  # exclude new players
                 .filter(F.datediff(F.lit(test_date), F.col("last_session_date")) < 7)    # if someone hasn't a session in the last 7 days, he has already churned      
@@ -168,15 +156,10 @@ def prepare_num_data_inference(test_date):
 
     gold_player_behavior.persist()
     gold_player_behavior.count() 
-
-
     ## only transaction-related features must has null values
     for c in gold_player_behavior.columns:
         if gold_player_behavior.filter(F.col(c).isNull()).count() != 0    :
             print(c) 
-
-
-
 
     gold_player_behavior = gold_player_behavior.fillna(0)
     return gold_player_behavior

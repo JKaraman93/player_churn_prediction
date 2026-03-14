@@ -1,0 +1,14 @@
+artifact_uri: file:///home/jim/bet/mlruns/911267403923902823/2e94f35a5d0d429ab684ed9247c5e4e8/artifacts
+end_time: 1773434905248
+entry_point_name: ''
+experiment_id: '911267403923902823'
+lifecycle_stage: active
+run_id: 2e94f35a5d0d429ab684ed9247c5e4e8
+run_name: train+val_0.4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1773434873474
+status: 3
+tags: []
+user_id: jim

@@ -1,5 +1,7 @@
 # TODO List
 
+- [X] Refine draft.ipynb, split it into sections
+
 ## Threshold selection 
 - [ ] For a player with predicted churn probability p: EV=p×r×S−C
 
@@ -32,8 +34,8 @@ If you see extreme values (>50), scaling or regularization is off.
 - [X] check test run : best_threshold
 - [ ] Drop highly correlated features
 - [X] convert ohe derived features importance to categorical feature importance 
-- [ ] store the exported items like figures and tables include in mlflow in a separated folder 
-- [ ] **produce player_idx | p_churn | risk_level | scoring_date**
+- [X] store the exported items like figures and tables include in mlflow in a separated folder 
+- [X] **produce player_idx | p_churn | risk_level | scoring_date**
 
 ## generate_sessions.py
 - [X] .withColumn("session_seq", F.explode(F.sequence(F.lit(1), F.col("daily_sessions")))) 
@@ -41,7 +43,7 @@ If you see extreme values (>50), scaling or regularization is off.
 
 ## generate_transactions.py
 - [X] Try larger percentage of invalid financial transaction to see the change in silver dataset (16.01.26)
-- [X]  .withColumn("transaction_ts", F.current_timestamp())  select ts between start and end date like sessions
+- [X] .withColumn("transaction_ts", F.current_timestamp())  select ts between start and end date like sessions
 - [ ] Each player complete only one transaction / should be more.
 
 ## create_bronze_dataset.py

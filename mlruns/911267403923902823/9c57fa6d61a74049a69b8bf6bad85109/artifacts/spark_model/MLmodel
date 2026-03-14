@@ -1,0 +1,43 @@
+artifact_path: spark_model
+flavors:
+  python_function:
+    data: sparkml
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.spark
+    python_version: 3.13.7
+  spark:
+    code: null
+    model_class: pyspark.ml.pipeline.PipelineModel
+    model_data: sparkml
+    pyspark_version: 4.1.1
+is_signature_from_type_hint: false
+mlflow_version: 3.10.1
+model_id: null
+model_size_bytes: 12768
+model_uuid: 52e929d28ba24d1086f744312ae86cd7
+prompts: null
+run_id: 9c57fa6d61a74049a69b8bf6bad85109
+signature:
+  inputs: '[{"type": "long", "name": "player_idx", "required": true}, {"type": "datetime",
+    "name": "reference_date", "required": true}, {"type": "double", "name": "balance_7d_ago",
+    "required": true}, {"type": "double", "name": "balance_30d_ago", "required": true},
+    {"type": "double", "name": "net_amount_result_7d", "required": true}, {"type":
+    "double", "name": "net_amount_result_30d", "required": true}, {"type": "long",
+    "name": "num_sessions_7d", "required": true}, {"type": "double", "name": "net_game_result_7d",
+    "required": true}, {"type": "long", "name": "num_sessions_30d", "required": true},
+    {"type": "double", "name": "avg_sessions_duration_30d", "required": true}, {"type":
+    "double", "name": "avg_bet_amount_30d", "required": true}, {"type": "double",
+    "name": "net_game_result_30d", "required": true}, {"type": "long", "name": "failed_withdrawals_30d",
+    "required": true}, {"type": "long", "name": "deposit_count_30d", "required": true},
+    {"type": "long", "name": "withdrawal_count_30d", "required": true}, {"type": "double",
+    "name": "withdrawal_ratio", "required": true}, {"type": "string", "name": "country",
+    "required": true}, {"type": "string", "name": "age_bucket", "required": true},
+    {"type": "boolean", "name": "next_7d_churn", "required": true}, {"type": "integer",
+    "name": "next_7d_churn_idx", "required": true}, {"type": "double", "name": "class_weight",
+    "required": true}]'
+  outputs: '[{"type": "double", "name": "p_churn", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-03-13 20:46:27.828958'

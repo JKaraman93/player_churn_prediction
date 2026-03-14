@@ -77,14 +77,12 @@ player_snapshot = spark.read.parquet("./data/gold/player_snapshot")
 labels = spark.read.parquet("./data/gold/labels")
 
 sample_fraction = 1.0
+mlflow.set_tracking_uri("file:./mlruns")
 mlflow.set_experiment("second experiment")
 experiment_tags = {
     "data_sample_fraction": sample_fraction, 
     "data_scope": "sampled",
     }
-
-with open("experiment_tags.json", "w") as f:
-    json.dump(experiment_tags, f, indent=2)
 
 player_snapshot = player_snapshot.select(
 'player_idx', 'country', 'age_bucket', 
@@ -143,8 +141,6 @@ feature_metadata = {
     "label_definition": "completion of 7-day inactivity window within next 7 days"
 }
 
-with open("feature_metadata.json", "w") as f:
-    json.dump(feature_metadata, f, indent=2)
 
 # ---------------------------
 # Train / Val / Test Split
@@ -187,7 +183,7 @@ test_df = add_class_weight(test_df, weight_for_churn_train_val)
 #### hyperparameter tuning #########
 
 with mlflow.start_run(run_name='train') as run:
-    mlflow.log_artifact("experiment_tags.json")
+    mlflow.log_dict(experiment_tags, "experiment_tags.json")
 
     mlflow.log_param('sample_of_players',str(sample_fraction*100) + '%')
 
@@ -263,8 +259,7 @@ with mlflow.start_run(run_name='train') as run:
 
 
     fi = pd.DataFrame({ "feature": expanded_features,  "coefficient": coeffs  })
-    fi.to_csv("feature_importance.csv", index=False)
-    mlflow.log_artifact("feature_importance.csv")
+    mlflow.log_table(fi, "feature_importance.json")
 
 
     sample_input = train_df.limit(100).toPandas()
@@ -274,8 +269,8 @@ with mlflow.start_run(run_name='train') as run:
     mlflow.spark.log_model(
         spark_model=best_model,
         artifact_path='spark_model',
-        registered_model_name='SparkLogisticRegression',
-        signature=signature
+        registered_model_name='SparkLogisticRegression_initial_train',
+        signature=signature,
     )
 
     train_run_id = run.info.run_id
@@ -301,12 +296,8 @@ with mlflow.start_run(run_name='thresholds'):
         results.append({'threshold': t, 'precision':precision, 'recall':recall, 'f1':f1,  
         'day_avg_churned': day_avg_churned, 'day_avg_flagged': day_avg_flagged})
 
-    pd.DataFrame(results).to_csv("threshold_metrics.csv", index=False)
-    mlflow.log_artifact("threshold_metrics.csv")    
+    mlflow.log_table(pd.DataFrame(results), "threshold_metrics.json")    
     
-    with open ('threshold_metrics.json', 'w') as f :
-        json.dump(results, f, indent=2)
-    mlflow.log_artifact("threshold_metrics.json")
 
     metrics_df = spark.createDataFrame(results)
     th_f1 = metrics_df.orderBy(F.desc("f1")).first()["threshold"]
@@ -326,9 +317,9 @@ with mlflow.start_run(run_name='thresholds'):
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     plt.title("Precision-Recall Curve")
-    plt.savefig("pr_curve.png")
+    #plt.savefig("pr_curve.png")
+    mlflow.log_figure(plt.gcf(), "pr_curve.png")
     plt.close()
-    mlflow.log_artifact("pr_curve.png")
 
 val_preds.unpersist()
 
@@ -423,8 +414,7 @@ for th in [th_f1, th_rec_f1_05, th_rec_08, th_flagged_players ] :
 
 
         fi = pd.DataFrame({ "feature": expanded_features,  "coefficient": coeffs  })
-        fi.to_csv("feature_importance.csv", index=False)
-        mlflow.log_artifact("feature_importance.csv")
+        mlflow.log_table(fi, "feature_importance.json")
 
         sample_input = train_df.limit(100).toPandas()
         sample_output = train_preds.select("p_churn").limit(100).toPandas()
@@ -433,9 +423,11 @@ for th in [th_f1, th_rec_f1_05, th_rec_08, th_flagged_players ] :
         mlflow.spark.log_model(
             spark_model=final_model,
             artifact_path='spark_model',
-            registered_model_name='SparkLogisticRegression',
+            registered_model_name='SparkLogisticRegression_train',
             signature=signature,
-            #stage="Production"
+            metadata={"threshold": th}
+
+
         )
 
         final_run_id = run.info.run_id
@@ -466,8 +458,7 @@ for th in [th_f1, th_rec_f1_05, th_rec_08, th_flagged_players ] :
         )
 
         cm_pd = cm.toPandas()
-        cm_pd.to_csv("confusion_matrix.csv", index=False)
-        mlflow.log_artifact("confusion_matrix.csv")
+        mlflow.log_table(cm_pd, "confusion_matrix.json")
 
 
 
