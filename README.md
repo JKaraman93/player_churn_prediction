@@ -15,7 +15,71 @@ Model targets players with at **least 30 days historical activity** to ensure st
 
 ---
 
-## 2. Business Objective
+## 2. Installation & Setup
+
+### Prerequisites
+
+* Python 3.8 or higher
+* pip package manager
+* ~2GB disk space for dependencies
+
+### Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd bet
+   ```
+
+2. **Create a Python virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install the package in editable mode**
+   ```bash
+   pip install -e .
+   ```
+   This installs the `bet` package and all dependencies (PySpark, pandas, MLflow, scikit-learn, etc.)
+
+4. **Verify installation**
+   ```bash
+   python -c "from bet.utils.config import DataGenConfig; print('✅ Installation successful')"
+   ```
+
+### Running Scripts
+
+Once installed, you can run scripts from any directory:
+
+```bash
+# Run backtest
+python src/bet/evaluation/backtest.py
+
+# Run inference
+python src/bet/models/inference.py <test_date>
+
+# Generate bronze data
+python src/bet/pipelines/create_bronze_dataset.py
+
+# Generate silver data
+python src/bet/pipelines/create_silver_dataset.py
+
+# Generate gold data
+python src/bet/pipelines/create_gold_dataset.py
+```
+
+### Development
+
+For development with auto-reloaded imports:
+
+```bash
+pip install -e ".[dev]"  # If dev extras are defined in setup.py
+```
+
+---
+
+## 3. Business Objective
 
 The system produces a **daily churn‑risk table** that can be consumed by CRM or retention systems:
 
@@ -30,7 +94,7 @@ This supports:
 
 ---
 
-## 3. Data Architecture
+## 4. Data Architecture
 
 The project follows a **Bronze → Silver → Gold** medallion structure.
 
@@ -80,7 +144,7 @@ This formulation approximates a **discrete survival / hazard prediction** proble
 
 ---
 
-## 4. Feature Engineering Principles
+## 5. Feature Engineering Principles
 
 Key design rules applied:
 
@@ -91,7 +155,7 @@ Key design rules applied:
 
 ---
 
-## 5. Modeling Approach
+## 6. Modeling Approach
 
 ### Algorithm
 
@@ -134,7 +198,7 @@ Churn probability is converted to **business risk segments** by selecting a thre
 
 ---
 
-## 6. Experiment Tracking (MLflow)
+## 7. Experiment Tracking (MLflow)
 
 The training workflow logs:
 
@@ -149,7 +213,7 @@ This ensures **full reproducibility and auditability**.
 
 ---
 
-## 7. Evaluation Interpretation
+## 8. Evaluation Interpretation
 
 Because the unit is *(player, day)* rather than player‑level:
 
@@ -164,7 +228,7 @@ Instead, metrics measure **daily early‑warning quality**.
 
 ---
 
-## 8. Production Inference Design
+## 9. Production Inference Design
 
 ### Core Principle
 
@@ -189,7 +253,7 @@ This creates a **deployable ML data product**.
 
 ---
 
-## 9. Current Status
+## 10. Current Status
 
 Completed:
 
@@ -203,7 +267,7 @@ Completed:
 
 ---
 
-## 10. Next Steps
+## 11. Next Steps
 
 Planned improvements toward full MLOps maturity:
 
@@ -216,12 +280,7 @@ Planned improvements toward full MLOps maturity:
 
 ---
 
-## 11. Tech Stack
-
-* Python
-* PySpark
-* Spark MLlib
-* MLflow
+## 12. Tech Stack
 * Parquet data lake structure
 
 ---
