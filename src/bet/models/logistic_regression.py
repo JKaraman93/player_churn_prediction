@@ -41,6 +41,7 @@ from pyspark.ml.functions import vector_to_array
 from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
 from mlflow.models.signature import infer_signature
 import mlflow
+from datetime import datetime
 
 from bet.utils.spark_session import get_spark
 from bet.utils.config import DataGenConfig
@@ -79,6 +80,7 @@ def compute_metrics(df: DataFrame, threshold: float) -> Tuple[float, float, floa
 
     pred_per_day = (pred.groupBy('reference_date')
     .agg(
+        #F.sum('player_idx').alias('num_players'),
         F.sum(F.when(F.col("pred_label") == 1, 1).otherwise(F.lit(0))).alias("num_flagged"),
         F.sum(F.when(F.col("next_7d_churn_idx") == 1, 1).otherwise(F.lit(0))).alias("num_churned")
         )
@@ -245,7 +247,7 @@ def _build_pipeline(numeric_cols: List[str], categorical_cols: List[str]) -> Tup
     return pipeline, evaluator
 
 
-def _tune_hyperparams(pipeline: Pipeline, train_df: DataFrame, evaluator: BinaryClassificationEvaluator) -> Tuple[PipelineModel, float, float, str]:
+def _tune_hyperparams(pipeline: Pipeline, train_df: DataFrame, evaluator: BinaryClassificationEvaluator, parent_run_id: str = None) -> Tuple[PipelineModel, float, float, str]:
     """
     Perform grid search cross-validation on training set.
     
@@ -259,6 +261,7 @@ def _tune_hyperparams(pipeline: Pipeline, train_df: DataFrame, evaluator: Binary
         pipeline: Unfitted Spark ML pipeline
         train_df: Training data with class weights
         evaluator: AUPR evaluator
+        parent_run_id: Optional parent run ID for nested run tracking
         
     Returns:
         Tuple of (best_model, best_reg_param, best_elastic_param, run_id)
@@ -282,7 +285,12 @@ def _tune_hyperparams(pipeline: Pipeline, train_df: DataFrame, evaluator: Binary
     )
 
     try:
-        with mlflow.start_run(run_name='train') as cv_run:
+        with mlflow.start_run(run_name='hyperparameter_tuning', nested=parent_run_id is not None) as cv_run:
+            # Link to parent run if provided
+            if parent_run_id:
+                mlflow.set_tag("parent_run_id", parent_run_id)
+                mlflow.set_tag("phase", "hyperparameter_tuning")
+            
             mlflow.log_param('cv_folds', 3)
             mlflow.log_param('cv_parallelism', 2)
             
@@ -327,7 +335,7 @@ def _tune_hyperparams(pipeline: Pipeline, train_df: DataFrame, evaluator: Binary
         raise
 
 
-def _optimize_threshold(best_model: PipelineModel, val_df: DataFrame, numeric_cols: List[str], categorical_cols: List[str]) -> Tuple[float, float, float, float, float]:
+def _optimize_threshold(best_model: PipelineModel, val_df: DataFrame, numeric_cols: List[str], categorical_cols: List[str], parent_run_id: str = None) -> Tuple[float, float, float, float, float]:
     """
     Find optimal decision threshold using validation set.
     
@@ -342,6 +350,7 @@ def _optimize_threshold(best_model: PipelineModel, val_df: DataFrame, numeric_co
         val_df: Validation data with class weights
         numeric_cols: Numeric feature names
         categorical_cols: Categorical feature names
+        parent_run_id: Optional parent run ID for nested run tracking
         
     Returns:
         Tuple of (th_f1, th_rec_f1_05, th_rec_08, th_flagged_players, best_model_uri)
@@ -354,7 +363,12 @@ def _optimize_threshold(best_model: PipelineModel, val_df: DataFrame, numeric_co
     thresholds = [i / 100 for i in range(5, 96, 5)]
     
     try:
-        with mlflow.start_run(run_name='threshold_optimization') as opt_run:
+        with mlflow.start_run(run_name='threshold_optimization', nested=parent_run_id is not None) as opt_run:
+            # Link to parent run if provided
+            if parent_run_id:
+                mlflow.set_tag("parent_run_id", parent_run_id)
+                mlflow.set_tag("phase", "threshold_optimization")
+            
             results = []
             val_preds = best_model.transform(val_df).withColumn("p_churn", vector_to_array("probability")[1])
             val_preds.persist()
@@ -478,7 +492,8 @@ def _train_final_models(
     best_elastic: float,
     thresholds_to_test: List[float],
     numeric_cols: List[str],
-    categorical_cols: List[str]
+    categorical_cols: List[str],
+    parent_run_id: str = None
 ) -> None:
     """
     Train final models on train+val set using selected thresholds, evaluate on test set.
@@ -500,6 +515,7 @@ def _train_final_models(
         thresholds_to_test: List of thresholds to train models for
         numeric_cols: Numeric feature names
         categorical_cols: Categorical feature names
+        parent_run_id: Optional parent run ID for nested run tracking
     """
     logger.info(f"Training final models for {len(thresholds_to_test)} thresholds...")
     
@@ -510,7 +526,15 @@ def _train_final_models(
         logger.info(f"Training final model with threshold={th:.2f}...")
         
         try:
-            with mlflow.start_run(run_name=f'final_train_{th:.2f}') as train_run:
+            # Create nested parent run for this threshold if parent_run_id provided
+            is_nested = parent_run_id is not None
+            with mlflow.start_run(run_name=f'final_training_threshold_{th:.2f}', nested=is_nested) as train_run:
+                # Link to parent run if provided
+                if is_nested:
+                    mlflow.set_tag("parent_run_id", parent_run_id)
+                    mlflow.set_tag("phase", "final_training")
+                    mlflow.set_tag("threshold_group", f"{th:.2f}")
+                
                 # Log train+test data ranges
                 train_dates = train_val_df.agg(F.min("reference_date"), F.max("reference_date")).first()
                 test_dates = test_df.agg(F.min("reference_date"), F.max("reference_date")).first()
@@ -582,46 +606,46 @@ def _train_final_models(
                 logger.info(f"Registered final model for threshold {th:.2f}")
                 final_run_id = train_run.info.run_id
 
+                # Evaluate on test set (nested child run within threshold group)
+                logger.info(f"Evaluating on test set...")
+                with mlflow.start_run(run_name=f'evaluation_threshold_{th:.2f}', nested=True):
+                    if is_nested:
+                        mlflow.set_tag("parent_run_id", parent_run_id)
+                    mlflow.set_tag("parent_threshold_run", final_run_id)
+                    mlflow.set_tag("phase", "evaluation")
+                    
+                    final_model = mlflow.spark.load_model(f"runs:/{final_run_id}/spark_model")
+                    
+                    test_preds = final_model.transform(test_df).withColumn("p_churn", vector_to_array("probability")[1])
+                    test_aupr = evaluator.evaluate(test_preds)
+
+                    precision, recall, f1, _, _ = compute_metrics(test_preds, th)
+                    
+                    mlflow.log_param('threshold', th)
+                    mlflow.log_metric('f1', f1)
+                    mlflow.log_metric('recall', recall)
+                    mlflow.log_metric('precision', precision)
+                    mlflow.log_metric("test_aupr", test_aupr)
+
+                    # Confusion matrix
+                    cm = (
+                        test_preds
+                        .withColumn("pred_label", (F.col("p_churn") >= th).cast("int"))
+                        .groupBy("next_7d_churn_idx", "pred_label")
+                        .count()
+                    )
+                    mlflow.log_table(cm.toPandas(), "confusion_matrix.json")
+                    
+                    logger.info(f"Test metrics (threshold {th:.2f}): precision={precision:.2f}, recall={recall:.2f}, f1={f1:.2f}, AUPR={test_aupr:.3f}")
+
         except Exception as e:
-            logger.error(f"Failed to train final model with threshold {th:.2f}: {e}")
-            continue
-
-        # Evaluate on test set
-        logger.info(f"Evaluating on test set...")
-        try:
-            with mlflow.start_run(run_name=f'final_test_{th:.2f}'):
-                final_model = mlflow.spark.load_model(f"runs:/{final_run_id}/spark_model")
-                
-                test_preds = final_model.transform(test_df).withColumn("p_churn", vector_to_array("probability")[1])
-                test_aupr = evaluator.evaluate(test_preds)
-
-                precision, recall, f1, _, _ = compute_metrics(test_preds, th)
-                
-                mlflow.log_param('threshold', th)
-                mlflow.log_metric('f1', f1)
-                mlflow.log_metric('recall', recall)
-                mlflow.log_metric('precision', precision)
-                mlflow.log_metric("test_aupr", test_aupr)
-
-                # Confusion matrix
-                cm = (
-                    test_preds
-                    .withColumn("pred_label", (F.col("p_churn") >= th).cast("int"))
-                    .groupBy("next_7d_churn_idx", "pred_label")
-                    .count()
-                )
-                mlflow.log_table(cm.toPandas(), "confusion_matrix.json")
-                
-                logger.info(f"Test metrics (threshold {th:.2f}): precision={precision:.2f}, recall={recall:.2f}, f1={f1:.2f}, AUPR={test_aupr:.3f}")
-
-        except Exception as e:
-            logger.error(f"Failed to evaluate test set for threshold {th:.2f}: {e}")
+            logger.error(f"Failed to train/evaluate model with threshold {th:.2f}: {e}")
             continue
 
 
 def main() -> None:
     """
-    Main training pipeline orchestration.
+    Main training pipeline orchestration with MLflow parent-child hierarchy.
     
     Workflow:
     1. Load and split data chronologically
@@ -632,77 +656,128 @@ def main() -> None:
     6. Train final models on train+val for selected thresholds
     7. Evaluate all models on test set
     
-    MLflow tracking:
-    - CV training run: Logs best hyperparameters and initial metrics
-    - Threshold optimization run: Logs all threshold candidates
-    - Final training runs: One per threshold with full feature importance
-    - Final evaluation runs: Test set metrics for each threshold
+    MLflow Structure (with parent-child hierarchy):
+    ├── Experiment: "churn_prediction_v2"
+    │   ├── Parent Run: "00_hyperparameter_tuning"
+    │   │   └── CV training metrics and best model registration
+    │   ├── Parent Run: "01_threshold_optimization"  
+    │   │   └── Threshold candidate evaluation and PR curve
+    │   └── Parent Run: "02_final_training"
+    │       └── Per-threshold model training
+    │           ├── Child Run: "final_training_threshold_X.XX"
+    │           │   └── Child Run: "evaluation_threshold_X.XX"
+    │           ├── Child Run: "final_training_threshold_Y.YY"
+    │           │   └── Child Run: "evaluation_threshold_Y.YY"
+    │           ...
     
     Raises:
         Exception: If any major pipeline step fails
     """
     logger.info("=" * 80)
-    logger.info("STARTING LOGISTIC REGRESSION MODEL TRAINING")
+    logger.info("STARTING LOGISTIC REGRESSION MODEL TRAINING WITH MLflow HIERARCHY")
     logger.info("=" * 80)
 
     spark = get_spark()
     spark.catalog.clearCache()
     config_ = DataGenConfig()
 
-    # Setup MLflow
+    # Setup MLflow with experiment and tags
     mlflow.set_tracking_uri("file:./mlruns")
-    mlflow.set_experiment("second experiment")
-    experiment_tags = {"data_scope": "full_dataset"}
+    mlflow.set_experiment("churn_prediction_v2")
+    
+    # Log experiment-level metadata
+    experiment_metadata = {
+        "data_scope": "full_dataset",
+        "model_type": "logistic_regression_churn_prediction",
+        "pipeline_version": "2.1_hierarchical_mlflow",
+        "experiment_timestamp": datetime.now().isoformat(),
+        "architecture": "spark_ml_pipeline",
+    }
+    mlflow.set_tags(experiment_metadata)
     
     try:
-        # Step 1: Prepare data (loads Gold tables internally)
-        train_df, val_df, test_df, numeric_cols, categorical_cols = _prepare_data(spark, sample_fraction=1.0)
+        # Create master run context for entire experiment
+        with mlflow.start_run(run_name="00_hyperparameter_tuning") as master_run:
+            master_run_id = master_run.info.run_id
+            logger.info(f"Master experiment run ID: {master_run_id}")
+            
+            # Step 1: Prepare data (loads Gold tables internally)
+            logger.info("Step 1/6: Preparing data...")
+            train_df, val_df, test_df, numeric_cols, categorical_cols = _prepare_data(spark, sample_fraction=1.0)
 
-        # Step 2: Compute class weights
-        logger.info("Computing class weights...")
-        num_churn = train_df.filter("next_7d_churn = true").count()
-        num_nonchurn = train_df.filter("next_7d_churn = false").count()
-        weight_for_churn = num_nonchurn / num_churn if num_churn > 0 else 1.0
-        logger.info(f"Class weight for churn: {weight_for_churn:.2f} (churn={num_churn}, non-churn={num_nonchurn})")
+            # Step 2: Compute class weights
+            logger.info("Step 2/6: Computing class weights...")
+            num_churn = train_df.filter("next_7d_churn = true").count()
+            num_nonchurn = train_df.filter("next_7d_churn = false").count()
+            weight_for_churn = num_nonchurn / num_churn if num_churn > 0 else 1.0
+            logger.info(f"Class weight for churn: {weight_for_churn:.2f} (churn={num_churn}, non-churn={num_nonchurn})")
 
-        # Apply weights
-        train_df = add_class_weight(train_df, weight_for_churn)
-        val_df = add_class_weight(val_df, weight_for_churn)
-        test_df = add_class_weight(test_df, weight_for_churn)
+            # Log to master run
+            mlflow.log_param("train_rows", train_df.count())
+            mlflow.log_param("val_rows", val_df.count())
+            mlflow.log_param("test_rows", test_df.count())
+            mlflow.log_param("num_churn_total", num_churn)
+            mlflow.log_param("num_nonchurn_total", num_nonchurn)
+            mlflow.log_param("numeric_features", len(numeric_cols))
+            mlflow.log_param("categorical_features", len(categorical_cols))
 
-        # Train+val combined
-        num_churn_train_val = train_df.count() + val_df.count()  # Use filtered data counts
-        num_nonchurn_train_val = (train_df.filter("next_7d_churn = false").count() + 
-                                  val_df.filter("next_7d_churn = false").count())
-        num_churn_train_val = (train_df.filter("next_7d_churn = true").count() + 
-                               val_df.filter("next_7d_churn = true").count())
-        weight_for_churn_train_val = num_nonchurn_train_val / num_churn_train_val if num_churn_train_val > 0 else 1.0
-        
-        train_val_df = train_df.unionByName(val_df)
-        train_val_df = add_class_weight(train_val_df, weight_for_churn_train_val)
-        test_df = add_class_weight(test_df, weight_for_churn_train_val)
+            # Apply weights
+            train_df = add_class_weight(train_df, weight_for_churn)
+            val_df = add_class_weight(val_df, weight_for_churn)
+            test_df = add_class_weight(test_df, weight_for_churn)
 
-        # Step 3: Build pipeline
-        pipeline, evaluator = _build_pipeline(numeric_cols, categorical_cols)
+            # Train+val combined
+            num_churn_train_val = (train_df.filter("next_7d_churn = true").count() + 
+                                   val_df.filter("next_7d_churn = true").count())
+            num_nonchurn_train_val = (train_df.filter("next_7d_churn = false").count() + 
+                                      val_df.filter("next_7d_churn = false").count())
+            weight_for_churn_train_val = num_nonchurn_train_val / num_churn_train_val if num_churn_train_val > 0 else 1.0
+            
+            train_val_df = train_df.unionByName(val_df)
+            train_val_df = add_class_weight(train_val_df, weight_for_churn_train_val)
+            test_df = add_class_weight(test_df, weight_for_churn_train_val)
 
-        # Step 4: Hyperparameter tuning
-        best_model, best_reg, best_elastic, cv_run_id = _tune_hyperparams(pipeline, train_df, evaluator)
+            # Step 3: Build pipeline
+            logger.info("Step 3/6: Building Spark ML pipeline...")
+            pipeline, evaluator = _build_pipeline(numeric_cols, categorical_cols)
 
-        # Step 5: Threshold optimization
-        th_f1, th_rec_f1_05, th_rec_08, th_flagged_players, _ = _optimize_threshold(
-            best_model, val_df, numeric_cols, categorical_cols
-        )
+            # Step 4: Hyperparameter tuning (nested under master run)
+            logger.info("Step 4/6: Starting hyperparameter tuning...")
+            best_model, best_reg, best_elastic, cv_run_id = _tune_hyperparams(
+                pipeline, train_df, evaluator, parent_run_id=master_run_id
+            )
 
-        # Step 6: Train final models
-        thresholds_to_test = [th_f1, th_rec_f1_05, th_rec_08, th_flagged_players]
-        _train_final_models(
-            pipeline, train_val_df, test_df, evaluator,
-            best_reg, best_elastic, thresholds_to_test,
-            numeric_cols, categorical_cols
-        )
+        # Step 5: Threshold optimization (separate parent run)
+        logger.info("Step 5/6: Starting threshold optimization...")
+        with mlflow.start_run(run_name="01_threshold_optimization") as threshold_run:
+            threshold_run_id = threshold_run.info.run_id
+            mlflow.set_tag("experiment_master_run", master_run_id)
+            
+            th_f1, th_rec_f1_05, th_rec_08, th_flagged_players, _ = _optimize_threshold(
+                best_model, val_df, numeric_cols, categorical_cols, parent_run_id=threshold_run_id
+            )
+
+        # Step 6: Train final models (separate parent run with nested threshold groups)
+        logger.info("Step 6/6: Starting final model training...")
+        with mlflow.start_run(run_name="02_final_training") as final_training_run:
+            final_training_run_id = final_training_run.info.run_id
+            mlflow.set_tag("hyperparameter_tuning_run", master_run_id)
+            mlflow.set_tag("threshold_optimization_run", threshold_run_id)
+            mlflow.log_param("num_threshold_models", len([th_f1, th_rec_f1_05, th_rec_08, th_flagged_players]))
+            
+            thresholds_to_test = [th_f1, th_rec_f1_05, th_rec_08, th_flagged_players]
+            _train_final_models(
+                pipeline, train_val_df, test_df, evaluator,
+                best_reg, best_elastic, thresholds_to_test,
+                numeric_cols, categorical_cols,
+                parent_run_id=final_training_run_id
+            )
 
         logger.info("=" * 80)
         logger.info("TRAINING COMPLETED SUCCESSFULLY")
+        logger.info(f"Master Run ID: {master_run_id}")
+        logger.info(f"Threshold Optimization Run ID: {threshold_run_id}")
+        logger.info(f"Final Training Run ID: {final_training_run_id}")
         logger.info("=" * 80)
 
     except Exception as e:
