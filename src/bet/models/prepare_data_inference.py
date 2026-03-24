@@ -28,6 +28,7 @@ from pyspark.sql.window import Window
 from bet.utils.spark_session import get_spark
 from bet.utils.config import DataGenConfig
 from bet.utils.logging_utils import get_logger
+from bet.utils.data_utils import read_silver_tables, extract_player_idx_from_id
 from bet.ingestion.last_activity_generator import generate_last_activity
 
 logger = get_logger(__name__)
@@ -69,10 +70,12 @@ def prepare_num_data_inference(test_date: str) -> DataFrame:
     
     # Load Silver layer data
     try:
-        players_silver = spark.read.parquet("./data/silver/players")
-        sessions_silver = spark.read.parquet("./data/silver/sessions")
-        transactions_silver = spark.read.parquet("./data/silver/transactions")
-        silver_money_events = spark.read.parquet("./data/silver/money_events")
+        logger.info("Loading Silver layer data...")
+        silver_tables = read_silver_tables(spark)
+        players_silver = silver_tables['players']
+        sessions_silver = silver_tables['sessions']
+        transactions_silver = silver_tables['transactions']
+        silver_money_events = silver_tables['money_events']
         logger.info("Loaded all Silver layer tables successfully")
     except Exception as e:
         logger.error(f"Failed to load Silver layer data: {e}")
@@ -80,12 +83,9 @@ def prepare_num_data_inference(test_date: str) -> DataFrame:
 
     # Extract numeric player indices
     players_silver = players_silver.drop('player_id')
-    transactions_silver = transactions_silver.withColumn( "player_idx",
-        F.regexp_replace("player_id", "[^0-9]", "").cast("long")).drop('player_id')
-    sessions_silver = sessions_silver.withColumn( "player_idx",
-        F.regexp_replace("player_id", "[^0-9]", "").cast("long")).drop('player_id')
-    silver_money_events = silver_money_events.withColumn( "player_idx",
-        F.regexp_replace("player_id", "[^0-9]", "").cast("long")).drop('player_id')
+    transactions_silver = extract_player_idx_from_id(transactions_silver)
+    sessions_silver = extract_player_idx_from_id(sessions_silver)
+    silver_money_events = extract_player_idx_from_id(silver_money_events)
 
     # Filter data up to test_date
     logger.info(f"Filtering data up to {test_date}")

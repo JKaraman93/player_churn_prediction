@@ -45,6 +45,7 @@ import mlflow
 from bet.utils.spark_session import get_spark
 from bet.utils.config import DataGenConfig
 from bet.utils.logging_utils import get_logger
+from bet.utils.data_utils import read_gold_tables
 
 logger = get_logger(__name__)
 
@@ -145,9 +146,10 @@ def _prepare_data(spark: SparkSession, sample_fraction: float = 1.0) -> Tuple[Da
     """
     logger.info("Loading data from Gold layer...")
     try:
-        player_behavior = spark.read.parquet("./data/gold/player_behavior")
-        player_snapshot = spark.read.parquet("./data/gold/player_snapshot")
-        labels = spark.read.parquet("./data/gold/labels")
+        gold_tables = read_gold_tables(spark)
+        player_behavior = gold_tables['player_behavior']
+        player_snapshot = gold_tables['player_snapshot']
+        labels = gold_tables['labels']
         logger.info(f"Loaded Gold tables: {player_behavior.count()} behavior records")
     except Exception as e:
         logger.error(f"Failed to load data from Gold layer: {e}")
@@ -653,7 +655,7 @@ def main() -> None:
     experiment_tags = {"data_scope": "full_dataset"}
     
     try:
-        # Step 1: Prepare data
+        # Step 1: Prepare data (loads Gold tables internally)
         train_df, val_df, test_df, numeric_cols, categorical_cols = _prepare_data(spark, sample_fraction=1.0)
 
         # Step 2: Compute class weights

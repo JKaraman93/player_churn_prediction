@@ -81,9 +81,10 @@ def main() -> None:
     # Load test data
     try:
         logger.info("Loading test data from Gold layer...")
-        player_behavior = spark.read.parquet("./data/gold/player_behavior")
-        player_snapshot = spark.read.parquet("./data/gold/player_snapshot")
-        labels = spark.read.parquet("./data/gold/labels")
+        gold_tables = read_gold_tables(spark)
+        player_behavior = gold_tables['player_behavior']
+        player_snapshot = gold_tables['player_snapshot']
+        labels = gold_tables['labels']
         
         test_df = (player_behavior.filter(F.col('reference_date') >= start_date)
                 .filter(F.col('reference_date') <= end_date)

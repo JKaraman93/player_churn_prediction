@@ -21,6 +21,7 @@ from pyspark.sql.window import Window
 from bet.utils.spark_session import get_spark
 from bet.utils.config import DataGenConfig
 from bet.utils.logging_utils import get_logger
+from bet.utils.data_utils import read_gold_tables
 from bet.models.prepare_data_inference import prepare_num_data_inference
 from pyspark.ml.functions import vector_to_array
 import mlflow 

@@ -40,6 +40,7 @@ from pyspark.sql import DataFrame, functions as F
 from pyspark.sql.window import Window
 from bet.utils.config import DataGenConfig
 from bet.utils.logging_utils import get_logger
+from bet.utils.data_utils import read_silver_tables, extract_player_idx_from_id
 from bet.ingestion.last_activity_generator import generate_last_activity
 
 logger = get_logger(__name__)
@@ -200,17 +201,18 @@ def main() -> None:
     
     # Load Silver data
     logger.info("Reading Silver layer data")
-    players_silver = spark.read.parquet("./data/silver/players")
-    sessions_silver = spark.read.parquet("./data/silver/sessions")
-    transactions_silver = spark.read.parquet("./data/silver/transactions")
-    silver_money_events = spark.read.parquet("./data/silver/money_events")
+    silver_tables = read_silver_tables(spark)
+    players_silver = silver_tables['players']
+    sessions_silver = silver_tables['sessions']
+    transactions_silver = silver_tables['transactions']
+    silver_money_events = silver_tables['money_events']
     
     # Extract player_idx and drop player_id
     logger.info("Extracting player indices")
     players_silver = players_silver.drop('player_id')
-    transactions_silver = transactions_silver.withColumn("player_idx", F.regexp_replace("player_id", "[^0-9]", "").cast("long")).drop('player_id')
-    sessions_silver = sessions_silver.withColumn("player_idx", F.regexp_replace("player_id", "[^0-9]", "").cast("long")).drop('player_id')
-    silver_money_events = silver_money_events.withColumn("player_idx", F.regexp_replace("player_id", "[^0-9]", "").cast("long")).drop('player_id')
+    transactions_silver = extract_player_idx_from_id(transactions_silver)
+    sessions_silver = extract_player_idx_from_id(sessions_silver)
+    silver_money_events = extract_player_idx_from_id(silver_money_events)
     
     # Create player snapshot
     logger.info("Creating player snapshot")
