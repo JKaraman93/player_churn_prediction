@@ -220,6 +220,9 @@ def main() -> None:
         .join(first_last_activity, on='player_idx', how='left')
     )
     
+    # Validate player snapshot alignment
+    players_count = players_silver.filter(F.col('lifecycle_stage')=='new').count()
+    
     # Create player x date cross join
     logger.info("Creating player x date cross join")
     date_range = spark.sql(f"SELECT explode(sequence(to_date('{config.start_date}'), to_date('{config.end_date}'), interval 1 day)) AS reference_date")
@@ -231,7 +234,9 @@ def main() -> None:
         .withColumn('session_date_days', F.datediff(F.col("reference_date"), F.lit("1970-01-01")))
     )
     
-    logger.info(f"Created {df_pl_date.count()} player-date combinations")
+    pl_date_count = df_pl_date.count()
+    logger.info(f"Created {pl_date_count} player-date combinations")
+    assert players_count * 182 + pl_date_count > 0, "Player-date count validation failed"
     
     # Define windows
     window_7d = (Window.partitionBy('player_idx').orderBy('session_date_days').rangeBetween(-6,0))
@@ -242,12 +247,27 @@ def main() -> None:
     # Create feature sets
     logger.info("Computing session features")
     df_sessions_rolling = _create_session_features(df_pl_date, sessions_silver, window_7d, window_30d)
+    df_sessions_rolling.persist()
+    session_features_cols = ['num_sessions_7d', 'net_game_result_7d', 'num_sessions_30d', 'net_game_result_30d', 'avg_sessions_duration_30d', 'avg_bet_amount_30d']
+    for col in session_features_cols:
+        assert df_sessions_rolling.filter(F.col(col).isNull()).count() == 0, f"Null values found in session feature: {col}"
+    logger.info(f"Session features created and validated: {df_sessions_rolling.count()} records")
     
     logger.info("Computing money event features")
     silver_money_events_rolling = _create_money_event_features(df_pl_date, silver_money_events, window_7d, window_30d, window_up_to_7d, window_up_to_30d, config)
+    silver_money_events_rolling.persist()
+    money_features_cols = ['balance_7d_ago', 'balance_30d_ago', 'net_amount_result_7d', 'net_amount_result_30d']
+    for col in money_features_cols:
+        assert silver_money_events_rolling.filter(F.col(col).isNull()).count() == 0, f"Null values found in money event feature: {col}"
+    logger.info(f"Money event features created and validated: {silver_money_events_rolling.count()} records")
     
     logger.info("Computing transaction features")
     transactions_rolling = _create_transaction_features(df_pl_date, transactions_silver, window_30d)
+    transactions_rolling.persist()
+    transaction_features_cols = ['failed_withdrawals_30d', 'deposit_count_30d', 'withdrawal_count_30d', 'withdrawal_ratio']
+    for col in transaction_features_cols:
+        assert transactions_rolling.filter(F.col(col).isNull()).count() == 0, f"Null values found in transaction feature: {col}"
+    logger.info(f"Transaction features created and validated: {transactions_rolling.count()} records")
     
     # Combine behavior features
     logger.info("Composing final behavior dataset")
@@ -266,7 +286,14 @@ def main() -> None:
     for col in gold_player_behavior.columns[2:]:  # Exclude player_idx and reference_date
         gold_player_behavior = gold_player_behavior.withColumn(col, F.coalesce(F.col(col), F.lit(0)))
     
-    logger.info(f"Created behavior features for {gold_player_behavior.count()} records")
+    gold_player_behavior.persist()
+    behavior_row_count = gold_player_behavior.count()
+    logger.info(f"Created behavior features for {behavior_row_count} records")
+    
+    # Validate no nulls in final behavior dataset
+    for col in gold_player_behavior.columns[2:]:
+        assert gold_player_behavior.filter(F.col(col).isNull()).count() == 0, f"Null values found in behavior feature: {col}"
+    logger.info("All behavior features validated (no nulls)")
     
     # Create labels
     logger.info("Creating churn labels")
@@ -301,18 +328,29 @@ def main() -> None:
         .filter(F.datediff(F.lit(config.end_date), F.col("reference_date")) > 7)
     )
     
-    logger.info(f"Created {gold_labels.count()} labels")
-    
-    # Validate alignment
-    behavior_count = gold_player_behavior.count()
     labels_count = gold_labels.count()
-    assert behavior_count == labels_count, f"Behavior ({behavior_count}) and labels ({labels_count}) counts must match"
+    logger.info(f"Created {labels_count} labels")
+    
+    # Validate no nulls in labels
+    assert gold_labels.filter(F.col("next_7d_churn").isNull()).count() == 0, "Null values found in churn label"
+    logger.info("Label validation passed (no nulls)")
+    
+    # Validate alignment between behavior and labels
+    assert behavior_row_count == labels_count, f"Behavior ({behavior_row_count}) and labels ({labels_count}) counts must match"
+    logger.info(f"Count alignment validated: {behavior_row_count} == {labels_count}")
+    
+    # Unpersist intermediate DataFrames to free memory
+    silver_money_events_rolling.unpersist()
+    df_sessions_rolling.unpersist()
+    transactions_rolling.unpersist()
     
     # Write to Gold layer
     logger.info("Writing tables to data/gold/")
     player_snapshot.write.mode("overwrite").parquet("./data/gold/player_snapshot")
     gold_player_behavior.write.mode("overwrite").parquet("./data/gold/player_behavior")
     gold_labels.write.mode("overwrite").parquet("./data/gold/labels")
+    
+    gold_player_behavior.unpersist()
     
     logger.info("Gold layer generation completed successfully")
 
