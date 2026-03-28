@@ -119,6 +119,9 @@ def prepare_num_data_inference(test_date: str) -> DataFrame:
                 F.sum(F.col('signed_amount')).alias('net_game_result_30d'),
     )           
     )
+
+    sessions_silver_one_date.persist()
+    sessions_silver_one_date.count() 
     
     for c in sessions_silver_one_date.columns:
         assert sessions_silver_one_date.filter(F.col(c).isNull()).count() == 0
@@ -185,6 +188,9 @@ def prepare_num_data_inference(test_date: str) -> DataFrame:
     .join(player_7d_act, how='left', on='player_idx')
     )
 
+    silver_money_events_one_date.persist()
+    silver_money_events_one_date.count() 
+
     for c in silver_money_events_one_date.columns:
         assert silver_money_events_one_date.filter(F.col(c).isNull()).count() == 0
     logger.info(f"Money event features computed for {silver_money_events_one_date.count()} players")
@@ -205,28 +211,41 @@ def prepare_num_data_inference(test_date: str) -> DataFrame:
                 F.col("withdrawal_count_30d") / F.col("deposit_count_30d")
             ).otherwise(F.lit(0.0)) ) )
 
+    transactions_silver_one_date.persist()
+    transactions_silver_one_date.count() 
+
     for c in transactions_silver_one_date.columns:
         assert transactions_silver_one_date.filter(F.col(c).isNull()).count() == 0
     logger.info(f"Transaction features computed for {transactions_silver_one_date.count()} players")
     
     # Combine all features
     gold_player_behavior = (player_snapshot
-                .filter(F.col('first_session_date').isNotNull())
-                .filter(F.datediff(F.lit(test_date), F.col("last_session_date")) < 7)
-                .filter(F.datediff(F.lit(test_date), F.col("first_session_date")) > 30)
+                .filter(F.col('first_session_date').isNotNull())  # exclude new players
+                .filter(F.datediff(F.lit(test_date), F.col("last_session_date")) < 7)    # if someone hasn't a session in the last 7 days, he has already churned      
+                .filter(F.datediff(F.lit(test_date), F.col("first_session_date")) > 30)    # if someone hasn't a session in the last 7 days, he has already churned      
                 .select('player_idx')
                 .join(silver_money_events_one_date, how='inner', on='player_idx') 
                 .join(transactions_silver_one_date, how='left', on='player_idx') 
                 .join(sessions_silver_one_date, how='left', on='player_idx')
     )
 
-    # Fill nulls
+    gold_player_behavior.persist()
+    gold_player_behavior.count() 
+    
+    ## only transaction-related features must has null values
     for c in gold_player_behavior.columns:
         if gold_player_behavior.filter(F.col(c).isNull()).count() != 0:
             logger.debug(f"Filling null values in column: {c}")
 
     gold_player_behavior = gold_player_behavior.fillna(0)
     logger.info(f"Inference data prepared for {gold_player_behavior.count()} players on {test_date}")
+
+        # Unpersist intermediate DataFrames to free memory
+    sessions_silver_one_date.unpersist()
+    silver_money_events_one_date.unpersist()
+    transactions_silver_one_date.unpersist()
+    gold_player_behavior.unpersist()
+
     return gold_player_behavior
 
 

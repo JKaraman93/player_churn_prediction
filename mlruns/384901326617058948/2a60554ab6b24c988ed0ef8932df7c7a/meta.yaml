@@ -1,0 +1,14 @@
+artifact_uri: file:///home/jim/bet/mlruns/384901326617058948/2a60554ab6b24c988ed0ef8932df7c7a/artifacts
+end_time: 1774431325999
+entry_point_name: ''
+experiment_id: '384901326617058948'
+lifecycle_stage: active
+run_id: 2a60554ab6b24c988ed0ef8932df7c7a
+run_name: evaluation_threshold_0.40
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774431320599
+status: 3
+tags: []
+user_id: jim

@@ -1,0 +1,7 @@
+artifact_location: file:///home/jim/bet/mlruns/293086771847452972
+creation_time: 1774431924262
+experiment_id: '293086771847452972'
+last_update_time: 1774431924262
+lifecycle_stage: active
+name: daily-inference
+workspace: default

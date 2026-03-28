@@ -29,8 +29,8 @@ VALIDATION_SPLIT_RATIO = 0.15
 TEST_SPLIT_RATIO = 0.15
 
 # Class imbalance handling
-POS_LABEL_WEIGHT = 3.0  # Weight for positive (churn) class
-NEG_LABEL_WEIGHT = 1.0  # Weight for negative (non-churn) class
+#POS_LABEL_WEIGHT = 3.0  # Weight for positive (churn) class
+#NEG_LABEL_WEIGHT = 1.0  # Weight for negative (non-churn) class
 
 # Evaluation metrics
 PRIMARY_METRIC = "AUPR"  # Area Under Precision-Recall Curve

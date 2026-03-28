@@ -685,6 +685,11 @@ def main() -> None:
     mlflow.set_tracking_uri("file:./mlruns")
     mlflow.set_experiment("churn_prediction_v2")
     
+    # Ensure no orphaned runs from previous failed executions
+    if mlflow.active_run() is not None:
+        logger.warning("Found orphaned active MLflow run, ending it...")
+        mlflow.end_run()
+    
     # Log experiment-level metadata
     experiment_metadata = {
         "data_scope": "full_dataset",
@@ -693,11 +698,12 @@ def main() -> None:
         "experiment_timestamp": datetime.now().isoformat(),
         "architecture": "spark_ml_pipeline",
     }
-    mlflow.set_tags(experiment_metadata)
+    #mlflow.set_tags(experiment_metadata)
     
     try:
         # Create master run context for entire experiment
         with mlflow.start_run(run_name="00_hyperparameter_tuning") as master_run:
+            mlflow.set_tags(experiment_metadata)
             master_run_id = master_run.info.run_id
             logger.info(f"Master experiment run ID: {master_run_id}")
             
@@ -782,10 +788,15 @@ def main() -> None:
 
     except Exception as e:
         logger.error(f"Training pipeline failed: {e}", exc_info=True)
+        # Ensure all active runs are properly closed before re-raising
+        if mlflow.active_run() is not None:
+            mlflow.end_run(status="FAILED")
         raise
 
 
+
 if __name__ == "__main__":
+
     main()
 
 

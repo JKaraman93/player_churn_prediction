@@ -22,6 +22,7 @@ from bet.utils.logging_utils import get_logger
 from pyspark.ml.functions import vector_to_array
 import mlflow 
 from mlflow.tracking import MlflowClient
+from bet.utils.data_utils import read_gold_tables
 
 logger = get_logger(__name__)
 
@@ -100,86 +101,72 @@ def main() -> None:
         raise
 
     # Run backtest inference
-    logger.info("Generating predictions on test set...")
-    back_test_preds = (loaded_model.transform(test_df)
-        .withColumn("p_churn", F.round(vector_to_array("probability")[1], 2))
-        .withColumn('risk_level', 
-            F.when(F.col('p_churn') >= 0.8, 'High')
-            .when(F.col('p_churn') >= 0.6, 'Medium')
-            .when(F.col('p_churn') >= 0.4, 'Low')
-            .otherwise(F.lit('None')))
-    )
-    
-    logger.info(f"Generated predictions for {back_test_preds.count()} test samples")
+    with mlflow.start_run(run_name='test_data'):
+        mlflow.log_param('start',start_date)
+        mlflow.log_param('end',end_date)
+        mlflow.log_param("train_run_id", train_run_id)                # the inference date
+        mlflow.log_param("model", model_version.source)       
+        mlflow.log_param("threshold", threshold)          # threshold used for labeling
 
-    # Compute daily metrics
-    logger.info("Computing daily performance metrics...")
-    pred_per_day = (back_test_preds.groupBy('reference_date')
-        .agg(
-            F.count('player_idx').alias('num_players'),
-            F.sum(F.when(F.col("prediction") == 1, 1).otherwise(F.lit(0))).alias("num_flagged"),
-            F.sum(F.when(F.col("next_7d_churn_idx") == 1, 1).otherwise(F.lit(0))).alias("num_churned"),
-            F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("prediction") == 1)), 1).otherwise(F.lit(0))).alias("tp"),
-            F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("prediction") == 0)), 1).otherwise(F.lit(0))).alias("fn"),
-            F.sum(F.when(((F.col("next_7d_churn_idx") == 0) & (F.col("prediction") == 0)), 1).otherwise(F.lit(0))).alias("tn"),
-            F.sum(F.when(((F.col("next_7d_churn_idx") == 0) & (F.col("prediction") == 1)), 1).otherwise(F.lit(0))).alias("fp"),
-            # Churn by risk level
-            F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("risk_level") == 'High')), 1).otherwise(F.lit(0))).alias("num_churned_high_risk"),
-            F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("risk_level") == 'Medium')), 1).otherwise(F.lit(0))).alias("num_churned_med_risk"),
-            F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("risk_level") == 'Low')), 1).otherwise(F.lit(0))).alias("num_churned_low_risk"),
-            F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("risk_level") == 'None')), 1).otherwise(F.lit(0))).alias("num_churned_no_risk"),
+        logger.info("Generating predictions on test set...")
+        back_test_preds = (loaded_model.transform(test_df)
+            .withColumn("p_churn", F.round(vector_to_array("probability")[1], 2))
+            .withColumn('risk_level', 
+                F.when(F.col('p_churn') >= 0.8, 'High')
+                .when(F.col('p_churn') >= 0.6, 'Medium')
+                .when(F.col('p_churn') >= 0.4, 'Low')
+                .otherwise(F.lit('None')))
         )
-        .withColumn('num_churned', F.col('tp') + F.col('fn'))
-        .withColumn('precision', F.when(F.col('tp') + F.col('fp') > 0, 
-                        F.round(F.col('tp') / (F.col('tp') + F.col('fp')), 2)).otherwise(F.lit(0)))
-        .withColumn('recall', F.when(F.col('tp') + F.col('fn') > 0, 
-                        F.round(F.col('tp') / (F.col('tp') + F.col('fn')), 2)).otherwise(F.lit(0)))
-        .withColumn('f1', F.when(F.col('precision') + F.col('recall') > 0, 
-                        F.round(2 * F.col('precision') * F.col('recall') / (F.col('precision') + F.col('recall')), 2))
-                        .otherwise(F.lit(0)))
-        .withColumn('churned_rate_high_risk', F.round(F.col('num_churned_high_risk') / F.col('num_churned'), 2))
-        .withColumn('churned_rate_med_risk', F.round(F.col('num_churned_med_risk') / F.col('num_churned'), 2))
-        .withColumn('churned_rate_low_risk', F.round(F.col('num_churned_low_risk') / F.col('num_churned'), 2))
-        .withColumn('churned_rate_no_risk', F.round(F.col('num_churned_no_risk') / F.col('num_churned'), 2))
-        .drop('tp', 'fn', 'tn', 'fp')
-    ).orderBy("reference_date")
     
-    select_cols = ['precision', 'recall', 'f1', 'churned_rate_high_risk', 'churned_rate_med_risk', 'churned_rate_low_risk', 'churned_rate_no_risk']    
-    df_avg = pred_per_day.select([F.round(F.avg(c), 2).alias('avg_' + c) for c in select_cols])
-    avg_metrics = df_avg.first().asDict()
+        logger.info(f"Generated predictions for {back_test_preds.count()} test samples")
+
+        # Compute daily metrics
+        logger.info("Computing daily performance metrics...")
+        pred_per_day = (back_test_preds.groupBy('reference_date')
+            .agg(
+                F.count('player_idx').alias('num_players'),
+                F.sum(F.when(F.col("prediction") == 1, 1).otherwise(F.lit(0))).alias("num_flagged"),
+                F.sum(F.when(F.col("next_7d_churn_idx") == 1, 1).otherwise(F.lit(0))).alias("num_churned"),
+                F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("prediction") == 1)), 1).otherwise(F.lit(0))).alias("tp"),
+                F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("prediction") == 0)), 1).otherwise(F.lit(0))).alias("fn"),
+                F.sum(F.when(((F.col("next_7d_churn_idx") == 0) & (F.col("prediction") == 0)), 1).otherwise(F.lit(0))).alias("tn"),
+                F.sum(F.when(((F.col("next_7d_churn_idx") == 0) & (F.col("prediction") == 1)), 1).otherwise(F.lit(0))).alias("fp"),
+                # Churn by risk level
+                F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("risk_level") == 'High')), 1).otherwise(F.lit(0))).alias("num_churned_high_risk"),
+                F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("risk_level") == 'Medium')), 1).otherwise(F.lit(0))).alias("num_churned_med_risk"),
+                F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("risk_level") == 'Low')), 1).otherwise(F.lit(0))).alias("num_churned_low_risk"),
+                F.sum(F.when(((F.col("next_7d_churn_idx") == 1) & (F.col("risk_level") == 'None')), 1).otherwise(F.lit(0))).alias("num_churned_no_risk"),
+            )
+            .withColumn('num_churned', F.col('tp') + F.col('fn'))
+            .withColumn('precision', F.when(F.col('tp') + F.col('fp') > 0, 
+                            F.round(F.col('tp') / (F.col('tp') + F.col('fp')), 2)).otherwise(F.lit(0)))
+            .withColumn('recall', F.when(F.col('tp') + F.col('fn') > 0, 
+                            F.round(F.col('tp') / (F.col('tp') + F.col('fn')), 2)).otherwise(F.lit(0)))
+            .withColumn('f1', F.when(F.col('precision') + F.col('recall') > 0, 
+                            F.round(2 * F.col('precision') * F.col('recall') / (F.col('precision') + F.col('recall')), 2))
+                            .otherwise(F.lit(0)))
+            .withColumn('churned_rate_high_risk', F.round(F.col('num_churned_high_risk') / F.col('num_churned'), 2))
+            .withColumn('churned_rate_med_risk', F.round(F.col('num_churned_med_risk') / F.col('num_churned'), 2))
+            .withColumn('churned_rate_low_risk', F.round(F.col('num_churned_low_risk') / F.col('num_churned'), 2))
+            .withColumn('churned_rate_no_risk', F.round(F.col('num_churned_no_risk') / F.col('num_churned'), 2))
+            .drop('tp', 'fn', 'tn', 'fp')
+        ).orderBy("reference_date")
     
-    logger.info(f"Average metrics - Precision: {avg_metrics.get('avg_precision')}, Recall: {avg_metrics.get('avg_recall')}, F1: {avg_metrics.get('avg_f1')}")
-
-    # Compute calibration curve
-    logger.info("Computing model calibration...")
-    preds = back_test_preds.withColumn("prob_bin", F.floor(F.col("p_churn") * 10) / 10)
-    calibration = (preds.groupBy("prob_bin")
-        .agg(F.round(F.avg("next_7d_churn_idx"), 2).alias("actual_rate"), 
-             F.count("*").alias("players"))
-        .orderBy("prob_bin")
-    )
-
-    # Log results to MLflow
-    logger.info("Logging results to MLflow...")
-    with mlflow.start_run(run_name='backtest_final'):
-        mlflow.log_param('start', start_date)
-        mlflow.log_param('end', end_date)
-        mlflow.log_param("train_run_id", train_run_id)
-        mlflow.log_param("model_version", model_version.version)
-        mlflow.log_param("threshold", threshold)
-        
-        # Log metrics
+        select_cols = ['precision', 'recall', 'f1', 'churned_rate_high_risk', 'churned_rate_med_risk', 'churned_rate_low_risk', 'churned_rate_no_risk']    
+        df_avg = pred_per_day.select([F.round(F.avg(c), 2).alias('avg_' + c) for c in select_cols])
+        avg_metrics = df_avg.first().asDict()
         mlflow.log_metrics(avg_metrics)
         
-        # Log tables
-        mlflow.log_table(pred_per_day.toPandas(), 'daily_metrics.json')
-        mlflow.log_table(calibration.toPandas(), 'calibration.json')
-        
-        logger.info("Backtest completed and results logged to MLflow")
+        logger.info(f"Average metrics - Precision: {avg_metrics.get('avg_precision')}, Recall: {avg_metrics.get('avg_recall')}, F1: {avg_metrics.get('avg_f1')}")
+
+        # Compute calibration curve
+        logger.info("Computing model calibration...")
+        preds = back_test_preds.withColumn("prob_bin", F.floor(F.col("p_churn") * 10) / 10)
+        calibration = (preds.groupBy("prob_bin")
+            .agg(F.round(F.avg("next_7d_churn_idx"),2).alias("actual_rate"), F.count("*").alias("players") )
+            .orderBy("prob_bin")  ) 
+        mlflow.log_table(calibration.toPandas(),'calibration.json')
 
 
 if __name__ == "__main__":
-    logger.info("Starting backtest evaluation")
     main()
-
-
