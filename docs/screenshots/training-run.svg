@@ -1,0 +1,88 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5F1E8"/>
+      <stop offset="1" stop-color="#EAF3F7"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#183A4A"/>
+      <stop offset="1" stop-color="#255C78"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#183A4A" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .title { font: 700 28px 'DejaVu Sans', Arial, sans-serif; fill: #F8FBFD; }
+      .sub { font: 400 15px 'DejaVu Sans', Arial, sans-serif; fill: #D5E6EE; }
+      .h { font: 700 21px 'DejaVu Sans', Arial, sans-serif; fill: #183A4A; }
+      .k { font: 600 13px 'DejaVu Sans', Arial, sans-serif; fill: #5E7380; letter-spacing: 0.08em; }
+      .v { font: 700 34px 'DejaVu Sans', Arial, sans-serif; fill: #183A4A; }
+      .txt { font: 400 16px 'DejaVu Sans', Arial, sans-serif; fill: #35505D; }
+      .small { font: 400 14px 'DejaVu Sans', Arial, sans-serif; fill: #4B6471; }
+      .mono { font: 400 14px 'DejaVu Sans Mono', monospace; fill: #35505D; }
+      .accent { font: 700 16px 'DejaVu Sans', Arial, sans-serif; fill: #9C5B16; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" rx="26" fill="url(#bg)"/>
+  <rect x="22" y="22" width="1156" height="86" rx="20" fill="url(#top)"/>
+  <text x="52" y="58" class="title">Screenshot Style Output 1: Training Run Summary</text>
+  <text x="52" y="84" class="sub">Based on MLflow artifacts stored in this repository</text>
+
+  <rect x="42" y="140" width="350" height="160" rx="22" fill="#FFF9EC" stroke="#D9B15E" stroke-width="2" filter="url(#shadow)"/>
+  <text x="70" y="175" class="k">MODEL</text>
+  <text x="70" y="212" class="h">Spark Logistic Regression</text>
+  <text x="70" y="242" class="txt">Baseline classifier trained on Gold layer features</text>
+  <text x="70" y="270" class="mono">registry alias: production -> version 4</text>
+
+  <rect x="425" y="140" width="220" height="160" rx="22" fill="#F1F7FB" stroke="#79AFC4" stroke-width="2" filter="url(#shadow)"/>
+  <text x="452" y="175" class="k">TEST AUPR</text>
+  <text x="452" y="232" class="v">0.638</text>
+  <text x="452" y="270" class="small">Held-out ranking quality</text>
+
+  <rect x="670" y="140" width="220" height="160" rx="22" fill="#EDF7F0" stroke="#78B08B" stroke-width="2" filter="url(#shadow)"/>
+  <text x="697" y="175" class="k">PRECISION</text>
+  <text x="697" y="232" class="v">0.61</text>
+  <text x="697" y="270" class="small">At selected threshold</text>
+
+  <rect x="915" y="140" width="220" height="160" rx="22" fill="#F9F0EF" stroke="#D6907E" stroke-width="2" filter="url(#shadow)"/>
+  <text x="942" y="175" class="k">RECALL / F1</text>
+  <text x="942" y="220" class="v">0.59</text>
+  <text x="942" y="260" class="txt">F1 = 0.60</text>
+
+  <rect x="42" y="340" width="540" height="360" rx="24" fill="#FFFFFF" stroke="#D8E2E8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="72" y="382" class="h">Threshold Selection Snapshot</text>
+  <text x="72" y="410" class="small">Validation artifact: threshold_metrics.json</text>
+
+  <line x1="92" y1="640" x2="532" y2="640" stroke="#B5C6CE" stroke-width="2"/>
+  <line x1="92" y1="470" x2="92" y2="640" stroke="#B5C6CE" stroke-width="2"/>
+
+  <polyline points="110,603 170,590 230,568 290,528 350,475 410,440 470,468 520,584" fill="none" stroke="#1F6F8B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="410" cy="440" r="8" fill="#9C5B16"/>
+  <text x="390" y="422" class="accent">best F1</text>
+  <text x="382" y="456" class="small">threshold 0.75</text>
+  <text x="380" y="476" class="small">precision 0.69</text>
+  <text x="380" y="496" class="small">recall 0.53</text>
+  <text x="380" y="516" class="small">f1 0.60</text>
+
+  <text x="98" y="665" class="small">0.35</text>
+  <text x="196" y="665" class="small">0.45</text>
+  <text x="296" y="665" class="small">0.55</text>
+  <text x="396" y="665" class="small">0.65</text>
+  <text x="492" y="665" class="small">0.85</text>
+  <text x="52" y="475" class="small">0.70</text>
+  <text x="52" y="560" class="small">0.50</text>
+  <text x="52" y="645" class="small">0.30</text>
+
+  <rect x="620" y="340" width="515" height="360" rx="24" fill="#FFFDF8" stroke="#E4D7B2" stroke-width="2" filter="url(#shadow)"/>
+  <text x="650" y="382" class="h">What This Shows</text>
+  <text x="650" y="420" class="txt">The project does more than fit one model:</text>
+  <text x="650" y="456" class="txt">• chronological train / validation / test split</text>
+  <text x="650" y="486" class="txt">• cross-validation for regularization tuning</text>
+  <text x="650" y="516" class="txt">• threshold optimization for operational trade-offs</text>
+  <text x="650" y="546" class="txt">• MLflow logging for metrics and artifacts</text>
+  <text x="650" y="604" class="small">Artifact values reflected here:</text>
+  <text x="650" y="632" class="mono">test_aupr = 0.6383016147</text>
+  <text x="650" y="656" class="mono">precision = 0.61, recall = 0.59, f1 = 0.60</text>
+  <text x="650" y="680" class="mono">production alias -> SparkLogisticRegression_train version 4</text>
+</svg>
