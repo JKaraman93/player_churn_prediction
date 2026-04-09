@@ -27,7 +27,7 @@ Model targets players with at **least 30 days historical activity** to ensure st
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/JKaraman93/bet.git
    cd bet
    ```
 
