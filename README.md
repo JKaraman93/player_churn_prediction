@@ -269,21 +269,50 @@ docker build -t bet-project .
 
 ### Run the default command
 
-The image currently starts by generating the Bronze layer:
+The image now starts by showing the available commands:
 
 ```bash
 docker run --rm -v "$(pwd):/app" bet-project
 ```
 
-### Run a different pipeline step
+### Run a pipeline step
 
-You can override the default command to run any project script:
+Use the built-in command wrapper:
 
 ```bash
-docker run --rm -v "$(pwd):/app" bet-project python src/bet/pipelines/create_silver_dataset.py
-docker run --rm -v "$(pwd):/app" bet-project python src/bet/pipelines/create_gold_dataset.py
-docker run --rm -v "$(pwd):/app" bet-project python src/bet/models/logistic_regression.py
+docker run --rm -v "$(pwd):/app" bet-project bronze
+docker run --rm -v "$(pwd):/app" bet-project silver
+docker run --rm -v "$(pwd):/app" bet-project gold
+docker run --rm -v "$(pwd):/app" bet-project train
+docker run --rm -v "$(pwd):/app" bet-project backtest
+docker run --rm -v "$(pwd):/app" bet-project inference 2024-06-20
 ```
+
+### Recommended execution order
+
+Required workflow:
+
+1. Generate Bronze data
+2. Generate Silver data
+3. Generate Gold data
+4. Train the model
+5. Run inference for a scoring date
+
+Optional evaluation step:
+
+- Run backtesting after training to evaluate the selected model on held-out data
+
+### Important MLflow note
+
+After training, you must manually assign your desired registered model version the MLflow alias `production` before running inference.
+
+This is required because both [src/bet/models/inference.py](/home/dimitris/Documents/bet/src/bet/models/inference.py) and [src/bet/evaluation/backtest.py](/home/dimitris/Documents/bet/src/bet/evaluation/backtest.py) load the model using:
+
+```text
+models:/SparkLogisticRegression_train@production
+```
+
+Training registers model versions, but it does not automatically set the `production` alias.
 
 Why mount the project directory:
 

@@ -13,9 +13,11 @@ RUN apt-get update \
 # Copy the package metadata first to keep rebuilds faster when source changes.
 COPY setup.py ./
 COPY src ./src
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
 
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -e .
+    && pip install --no-cache-dir -e . \
+    && chmod +x /app/docker-entrypoint.sh
 
-# Default command: run the first pipeline step so the image is easy to test.
-CMD ["python", "src/bet/pipelines/create_bronze_dataset.py"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["help"]
