@@ -35,7 +35,11 @@ Example output:
 
 ![Project architecture](docs/architecture-diagram.svg)
 
-## Repository Structure
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/JKaraman93/bet.git
+   cd bet
+   ```
 
 ```text
 src/bet/
