@@ -1,8 +1,8 @@
 aliases: {}
-creation_timestamp: 1773434802009
+creation_timestamp: 1774431214291
 deployment_job_id: null
 deployment_job_state: null
 description: null
-last_updated_timestamp: 1773434802013
+last_updated_timestamp: 1774431214295
 name: SparkLogisticRegression_initial_train
 workspace: default

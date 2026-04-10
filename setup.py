@@ -7,9 +7,9 @@ setup(
     author='Jim',
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
-    python_requires='>=3.8',
+    python_requires='>=3.10',
     install_requires=[
-        'pyspark>=3.0.0',
+        'pyspark==4.1.0',
         'pandas>=1.0.0',
         'numpy>=1.18.0',
         'mlflow>=1.0.0',

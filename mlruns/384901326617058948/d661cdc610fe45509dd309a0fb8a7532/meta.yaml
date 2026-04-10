@@ -1,0 +1,14 @@
+artifact_uri: file:///home/jim/bet/mlruns/384901326617058948/d661cdc610fe45509dd309a0fb8a7532/artifacts
+end_time: 1774431214310
+entry_point_name: ''
+experiment_id: '384901326617058948'
+lifecycle_stage: active
+run_id: d661cdc610fe45509dd309a0fb8a7532
+run_name: hyperparameter_tuning
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774431140037
+status: 3
+tags: []
+user_id: jim

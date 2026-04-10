@@ -6,6 +6,7 @@ __pycache__/
 data/silver/
 data/bronze/
 data/gold/
+old_data/
 # Python packaging and build artifacts
 *.egg-info/
 *.egg
@@ -22,3 +23,5 @@ htmlcov/
 .idea/
 *.swp
 *.swo
+
+.codex

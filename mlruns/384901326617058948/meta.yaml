@@ -1,0 +1,7 @@
+artifact_location: file:///home/jim/bet/mlruns/384901326617058948
+creation_time: 1774431123762
+experiment_id: '384901326617058948'
+last_update_time: 1774431123762
+lifecycle_stage: active
+name: churn_prediction_v2
+workspace: default

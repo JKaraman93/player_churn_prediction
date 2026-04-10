@@ -11,12 +11,27 @@ Configuration:
 """
 
 from pyspark.sql import SparkSession
+from bet.utils.constants import SPARK_DRIVER_MEMORY, SPARK_EXECUTOR_MEMORY
 
-def get_spark(app_name :str= 'SyntheticDataGenerator'):
-    return ( SparkSession.builder.master("local[*]")
+
+def get_spark(app_name: str = 'BetAnalytics') -> SparkSession:
+    """
+    Create and return a configured SparkSession instance.
+    
+    Sets up Spark with optimized memory configuration for data processing
+    on a single machine or small cluster.
+    
+    Args:
+        app_name: Name for the Spark application (default: 'BetAnalytics')
+        
+    Returns:
+        Configured SparkSession instance ready for use
+    """
+    return (SparkSession.builder
+            .master("local[*]")
             .appName(app_name)
-            .config("spark.driver.memory", "12g")  # driver memory
-            .config("spark.executor.memory", "12g")
+            .config("spark.driver.memory", SPARK_DRIVER_MEMORY)
+            .config("spark.executor.memory", SPARK_EXECUTOR_MEMORY)
             .getOrCreate())
 
 

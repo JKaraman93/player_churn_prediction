@@ -15,11 +15,30 @@ Used for segmentation and targeted interventions in downstream analysis.
 Output: player profiles with lifecycle_stage attribute
 """
 
-from pyspark.sql import functions as F
+from pyspark.sql import DataFrame, functions as F
+from bet.utils.logging_utils import get_logger
 
-def assign_lifecycle(df_players):
-    return (
-        df_players
+logger = get_logger(__name__)
+
+
+def assign_lifecycle(df_players: DataFrame) -> DataFrame:
+    """
+    Assign lifecycle stage to players based on random distribution.
+    
+    Creates a new 'lifecycle_stage' column with values distributed as:
+    - 60% 'engaged': Active, healthy players
+    - 25% 'new': Recently registered players (85% - 60%)
+    - 15% 'at_risk': Declining activity players (100% - 85%)
+    
+    Args:
+        df_players: Input DataFrame with player profiles
+        
+    Returns:
+        DataFrame with new 'lifecycle_stage' column added
+    """
+    logger.info(f"Assigning lifecycle stages to {df_players.count()} players")
+    
+    result = (df_players
         .withColumn(
             "lifecycle_stage",
             F.expr("""
@@ -31,3 +50,10 @@ def assign_lifecycle(df_players):
             """)
         )
     )
+    
+    # Log distribution
+    stage_counts = result.groupBy("lifecycle_stage").count().collect()
+    for row in stage_counts:
+        logger.info(f"  {row['lifecycle_stage']}: {row['count']} players")
+    
+    return result

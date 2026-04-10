@@ -1,29 +1,39 @@
-# Player Churn Prediction – End‑to‑End ML System
+# Player Churn Prediction with PySpark and MLflow
 
-## 1. Project Overview
+An end-to-end machine learning project that simulates a real gaming analytics workflow: synthetic data generation, medallion-style data pipelines, churn feature engineering, model training, experiment tracking, batch inference, and backtesting.
 
-This project implements a **production‑oriented machine learning pipeline** to predict whether a gaming player will **complete a 7‑day inactivity (churn) period within the next 7 days**.
+The goal is to predict whether a player will complete a 7-day inactivity period within the next 7 days, using only information available up to the scoring date.
 
-Unlike simple player‑level churn models, the prediction unit here is:
+## Business Framing
 
-> **(player, reference_date)** → probability of churn completion in *(t, t+7]*
+Prediction unit:
 
-This enables **daily risk scoring**, early intervention, and realistic deployment in gaming or subscription environments.
+`(player, reference_date) -> probability of churn completion in (t, t+7]`
 
-Model targets players with at **least 30 days historical activity** to ensure stable rolling feature computation and prevent cold-start bias.
+This means the system produces daily risk scores, not one static score per player. That makes it closer to how churn models are used in production CRM and retention workflows.
 
+Example output:
 
----
+| player_idx | reference_date | p_churn | risk_level |
+| ---------- | -------------- | ------- | ---------- |
+| 1023 | 2024-06-20 | 0.81 | High |
+| 587 | 2024-06-20 | 0.47 | Low |
 
-## 2. Installation & Setup
+## What The Project Covers
 
-### Prerequisites
+- Synthetic player, session, and transaction generation
+- Bronze -> Silver -> Gold data architecture
+- Time-aware feature engineering with Spark window functions
+- Churn label construction with strict temporal causality
+- Logistic Regression baseline built in Spark ML
+- Hyperparameter tuning and threshold selection
+- MLflow logging, model registration, and experiment metadata
+- Daily batch inference from registered production model
+- Backtesting on held-out time periods
 
-* Python 3.8 or higher
-* pip package manager
-* ~2GB disk space for dependencies
+## Architecture
 
-### Quick Start
+![Project architecture](docs/architecture-diagram.svg)
 
 1. **Clone the repository**
    ```bash
@@ -31,256 +41,253 @@ Model targets players with at **least 30 days historical activity** to ensure st
    cd bet
    ```
 
-2. **Create a Python virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install the package in editable mode**
-   ```bash
-   pip install -e .
-   ```
-   This installs the `bet` package and all dependencies (PySpark, pandas, MLflow, scikit-learn, etc.)
-
-4. **Verify installation**
-   ```bash
-   python -c "from bet.utils.config import DataGenConfig; print('✅ Installation successful')"
-   ```
-
-### Running Scripts
-
-Once installed, you can run scripts from any directory:
-
-```bash
-# Run backtest
-python src/bet/evaluation/backtest.py
-
-# Run inference
-python src/bet/models/inference.py <test_date>
-
-# Generate bronze data
-python src/bet/pipelines/create_bronze_dataset.py
-
-# Generate silver data
-python src/bet/pipelines/create_silver_dataset.py
-
-# Generate gold data
-python src/bet/pipelines/create_gold_dataset.py
+```text
+src/bet/
+├── ingestion/     # Synthetic data generation and player behavior simulation
+├── pipelines/     # Bronze, Silver, Gold dataset creation
+├── models/        # Training, inference, and inference feature prep
+├── evaluation/    # Backtesting and performance analysis
+├── utils/         # Spark session, config, constants, helpers
+└── schemas/       # Data schema notes
 ```
+ 
+## Tech Stack
 
-### Development
+- Python
+- PySpark
+- Spark SQL
+- Spark ML
+- MLflow
+- pandas
+- scikit-learn
+- matplotlib
+- Parquet
 
-For development with auto-reloaded imports:
-
-```bash
-pip install -e ".[dev]"  # If dev extras are defined in setup.py
-```
-
----
-
-## 3. Business Objective
-
-The system produces a **daily churn‑risk table** that can be consumed by CRM or retention systems:
-
-| player_idx | score_date | p_churn | risk_segment |
-| ---------- | ---------- | ------- | ------------ |
-
-This supports:
-
-* Early retention campaigns
-* Dynamic bonus allocation
-* Monitoring of player health over time
-
----
-
-## 4. Data Architecture
-
-The project follows a **Bronze → Silver → Gold** medallion structure.
+## Data Architecture
 
 ### Bronze
 
-Raw synthetic data:
+Raw synthetic data generated for:
 
-* Players
-* Sessions
-* Financial transactions
+- players
+- sessions
+- transactions
 
 ### Silver
 
-Cleaned, time‑consistent event tables used as **source of truth** for ML features.
+Cleaned and standardized event tables used as the trusted source for downstream feature computation.
+
+Key work in this layer:
+
+- deduplication
+- date consistency checks
+- balance logic validation
+- unified money-event construction
 
 ### Gold
 
-ML‑ready datasets:
+ML-ready tables:
 
-#### Player Snapshot
+- `player_snapshot`: mostly static player attributes
+- `player_behavior`: rolling 7-day and 30-day behavioral features
+- `labels`: future churn target aligned to each player-date
 
-Static attributes per player:
+## Feature Engineering
 
-* Country, age bucket, acquisition channel
-* Registration date
-* Lifecycle / risk segment
-* Current balance
-* Last session date, inactivity days
+The feature layer was designed around a few production-style principles:
 
-#### Player Behavior (rolling features)
+- strict time causality: features use only data up to `reference_date`
+- rolling windows: behavior summarized over recent 7-day and 30-day periods
+- zero-activity preservation: inactive players remain in the dataset
+- training-serving consistency: inference recomputes features from source data instead of trusting precomputed historical outputs
 
-Rolling **7‑day and 30‑day** aggregates per *(player, reference_date)*:
+Examples of engineered features:
 
-* Net financial and game results
-* Session counts and duration
-* Bet behavior
-* Withdrawal statistics and ratios
-* Historical balances (7d / 30d ago)
+- session counts over 7d and 30d
+- average session duration
+- average bet amount
+- net game result
+- deposit and withdrawal activity
+- failed withdrawals
+- withdrawal ratio
+- historical balance snapshots
 
-#### Labels
-
-Binary target:
-
-> **next_7d_churn = 1** if a 7‑day inactivity window will complete in the next 7 days.
-
-This formulation approximates a **discrete survival / hazard prediction** problem.
-
----
-
-## 5. Feature Engineering Principles
-
-Key design rules applied:
-
-* **Strict time causality** → features use only data ≤ reference_date
-* **Rolling windows** → 7‑day and 30‑day behavioral summaries
-* **Zero‑activity preservation** → inactive players retained with zero values
-* **Training–serving consistency** → identical window definitions offline and in production
-
----
-
-## 6. Modeling Approach
-
-### Algorithm
+## Modeling Approach
 
 Baseline model:
 
-* **Logistic Regression (Spark ML)**
+- Logistic Regression in Spark ML
 
-Chosen for:
+Preprocessing pipeline:
 
-* Interpretability
-* Fast training on large data
-* Strong baseline for tabular churn problems
+- StringIndexer
+- OneHotEncoder
+- VectorAssembler
+- StandardScaler
+- LogisticRegression
 
-### Preprocessing Pipeline
+Validation strategy:
 
-Spark ML pipeline includes:
+- chronological train / validation / test split
+- 3-fold cross-validation on the training period
+- Area Under Precision-Recall as the primary ranking metric
+- threshold tuning based on validation performance
 
-* StringIndexing + One‑Hot Encoding for categorical variables
-* Standard scaling for numeric features
-* Vector assembly
-* Class weighting for imbalance handling
+## MLflow Usage
 
-### Validation Strategy
+The training pipeline logs:
 
-* **Time‑based train / validation / test split**
-* **Cross‑validation** on training period
-* **Area Under Precision‑Recall (AUPR)** as primary metric
+- hyperparameters
+- evaluation metrics
+- threshold choices
+- feature importance output
+- precision-recall curve
+- model artifacts
+- environment metadata
+- git metadata when available
 
-Why AUPR:
+The project also uses the MLflow model registry to load the production model during inference and backtesting.
 
-> Churn is **imbalanced**, so PR is more informative than ROC.
+## Inference Design
 
-### Threshold Optimization
+The inference flow is intentionally close to a deployment scenario:
 
-Churn probability is converted to **business risk segments** by selecting a threshold that balances:
+1. recompute numeric features for a scoring date from source data
+2. load the production model from MLflow
+3. generate churn probabilities
+4. convert probabilities into risk levels
+5. log prediction outputs and metadata
 
-* Precision (avoid unnecessary incentives)
-* Recall (capture real churners)
-* F1 score (overall trade‑off)
+This project uses batch scoring rather than online inference, which is realistic for daily retention targeting.
 
----
+## Backtesting
 
-## 7. Experiment Tracking (MLflow)
+Backtesting evaluates the registered production model on a held-out time period and logs:
 
-The training workflow logs:
+- daily precision, recall, and F1
+- flagged-player volumes
+- churn concentration by risk bucket
+- calibration summaries
 
-* Hyperparameters
-* Metrics (AUPR, precision, recall, F1)
-* Selected decision threshold
-* Spark ML pipeline model artifact
-* Environment metadata (Python version, platform, Git commit)
-* Dataset fingerprints / checksums
+This helps connect model quality to how the scoring system would behave operationally.
 
-This ensures **full reproducibility and auditability**.
+## Quick Start
 
----
+### 1. Create and activate a virtual environment
 
-## 8. Evaluation Interpretation
+```bash
+python -m venv venv
+source venv/bin/activate
+```
 
-Because the unit is *(player, day)* rather than player‑level:
+### 2. Install the package
 
-* Metrics are **per‑day predictions**
-* Multiple positive labels may correspond to the **same churn episode**
+```bash
+pip install -e .
+```
 
-Therefore:
+### 3. Generate the datasets
 
-> Precision ≠ % of churned players correctly predicted
+```bash
+python src/bet/pipelines/create_bronze_dataset.py
+python src/bet/pipelines/create_silver_dataset.py
+python src/bet/pipelines/create_gold_dataset.py
+```
 
-Instead, metrics measure **daily early‑warning quality**.
+### 4. Train the model
 
----
+```bash
+python src/bet/models/logistic_regression.py
+```
 
-## 9. Production Inference Design
+### 5. Run batch inference for one day
 
-### Core Principle
+```bash
+python src/bet/models/inference.py 2024-06-20
+```
 
-Inference must:
+### 6. Run backtesting
 
-> Recompute rolling features from **Silver source data** using only data ≤ score_date.
+```bash
+python src/bet/evaluation/backtest.py
+```
 
-Gold historical aggregates are **not trusted** in production to avoid leakage or staleness.
+## Run With Docker
 
-### Daily Batch Scoring
+This project now includes a minimal Docker setup for learning and reproducible local execution.
 
-For each day *t‑1*:
+### Build the image
 
-1. Load Silver sessions, transactions, and player attributes
-2. Aggregate events within **[t‑29, t]**
-3. Build feature vector using the **MLflow‑stored pipeline**
-4. Predict churn probability
-5. Map probability → **risk segment**
-6. Write **append‑only prediction table**
+```bash
+docker build -t bet-project .
+```
 
-This creates a **deployable ML data product**.
+### Run the default command
 
----
+The image now starts by showing the available commands:
 
-## 10. Current Status
+```bash
+docker run --rm -v "$(pwd):/app" bet-project
+```
 
-Completed:
+### Run a pipeline step
 
-* Synthetic data generation
-* Gold feature engineering with rolling windows
-* Leakage‑free churn label construction
-* Logistic regression pipeline with class weighting
-* Cross‑validation and threshold tuning
-* MLflow experiment tracking and model logging
-* Production‑aligned inference design
+Use the built-in command wrapper:
 
----
+```bash
+docker run --rm -v "$(pwd):/app" bet-project bronze
+docker run --rm -v "$(pwd):/app" bet-project silver
+docker run --rm -v "$(pwd):/app" bet-project gold
+docker run --rm -v "$(pwd):/app" bet-project train
+docker run --rm -v "$(pwd):/app" bet-project backtest
+docker run --rm -v "$(pwd):/app" bet-project inference 2024-06-20
+```
 
-## 11. Next Steps
+### Recommended execution order
 
-Planned improvements toward full MLOps maturity:
+Required workflow:
 
-* **Daily batch inference script** with backfill support
-* Prediction table monitoring (drift, score distribution, alerting)
-* Advanced models (Gradient Boosting, XGBoost, LightGBM)
-* Survival analysis / time‑to‑churn modeling
-* CI/CD automation and scheduled retraining
-* Deployment on cloud Spark / Databricks / Kubernetes
+1. Generate Bronze data
+2. Generate Silver data
+3. Generate Gold data
+4. Train the model
+5. Run inference for a scoring date
 
----
+Optional evaluation step:
 
-## 12. Tech Stack
-* Parquet data lake structure
+- Run backtesting after training to evaluate the selected model on held-out data
 
----
+### Important MLflow note
+
+After training, you must manually assign your desired registered model version the MLflow alias `production` before running inference.
+
+This is required because both [src/bet/models/inference.py](/home/dimitris/Documents/bet/src/bet/models/inference.py) and [src/bet/evaluation/backtest.py](/home/dimitris/Documents/bet/src/bet/evaluation/backtest.py) load the model using:
+
+```text
+models:/SparkLogisticRegression_train@production
+```
+
+## Example Outputs
+
+These screenshot-style visuals are based on artifacts already stored in the repository and help show the project as a complete workflow rather than only code.
+
+### Training Run Summary
+
+![Training run summary](docs/screenshots/training-run.svg)
+
+### Daily Inference Output
+
+![Daily inference output](docs/screenshots/daily-inference.svg)
+
+### Backtest Summary
+
+![Backtest summary](docs/screenshots/backtest-results.svg)
+
+
+## Possible Next Improvements
+
+If I wanted to extend the project later, the next logical steps would be:
+
+- add lightweight unit tests for feature and label logic
+- compare the baseline against tree-based models
+

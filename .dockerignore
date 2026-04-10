@@ -1,0 +1,13 @@
+.git
+.gitignore
+.codex
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints
+notebooks
+mlruns
+mlflow.db
+data

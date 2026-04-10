@@ -14,9 +14,33 @@ Generated attributes:
 Contributes to behavioral feature engineering in downstream layers.
 """
 
-from pyspark.sql import functions as F
+from pyspark.sql import SparkSession, DataFrame, functions as F
+from bet.utils.config import DataGenConfig
+from bet.utils.logging_utils import get_logger
 
-def generate_gameplay_sessions(players_df, spark, config): 
+logger = get_logger(__name__)
+
+
+def generate_gameplay_sessions(players_df: DataFrame, spark: SparkSession, config: DataGenConfig) -> DataFrame:
+    """
+    Generate synthetic gaming sessions with realistic timestamps and betting data.
+    
+    Creates sessions based on player lifecycle stage:
+    - Engaged players: High activity (lambda 1.2)
+    - At-risk players: Medium activity (lambda 0.4)
+    - Other players: No sessions
+    
+    Uses Poisson distribution for natural session count generation.
+    
+    Args:
+        players_df: DataFrame with player profiles including lifecycle_stage
+        spark: Spark session instance
+        config: DataGenConfig with date range and activity parameters
+        
+    Returns:
+        DataFrame with gaming session records
+    """
+    logger.info(f"Generating gaming sessions from {players_df.count()} players") 
     date_range = spark.sql(
         f"SELECT explode(sequence(to_date('{config.start_date}'), to_date('{config.end_date}'), interval 1 day)) AS event_date"
     )
@@ -54,10 +78,10 @@ def generate_gameplay_sessions(players_df, spark, config):
             "session_duration_sec",
             "bet_count",
             "total_bet_amount",
-            "total_win_amount",
-            #"device_type"
+            "total_win_amount"
         )
     )
-                
+    
+    logger.info(f"Generated {df.count()} gaming sessions")
     return df
     

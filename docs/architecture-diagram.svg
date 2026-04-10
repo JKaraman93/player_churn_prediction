@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1100"
+   height="760"
+   viewBox="0 0 1100 760"
+   fill="none"
+   version="1.1"
+   id="svg47"
+   sodipodi:docname="architecture-diagram.svg"
+   inkscape:version="1.4.3 (1:1.4.3+202512261035+0d15f75042)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview47"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.91365639"
+     inkscape:cx="560.38573"
+     inkscape:cy="334.37078"
+     inkscape:window-width="1920"
+     inkscape:window-height="1043"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg47"
+     showgrid="false"
+     showguides="true">
+    <inkscape:grid
+       id="grid10"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14902"
+       empspacing="5"
+       enabled="true"
+       visible="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient8"
+       x1="0"
+       y1="0"
+       x2="1100"
+       y2="0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#113946"
+         id="stop7"
+         offset="1"
+         style="stop-color:#fafffa;stop-opacity:1;" />
+      <stop
+         offset="1"
+         stop-color="#1D5B79"
+         id="stop8" />
+    </linearGradient>
+    <rect
+       x="651.22951"
+       y="459.69142"
+       width="1.0945034"
+       height="21.890067"
+       id="rect6" />
+    <rect
+       x="448.74638"
+       y="462.97493"
+       width="310.83896"
+       height="187.16008"
+       id="rect4" />
+    <linearGradient
+       id="swatch10"
+       inkscape:swatch="solid">
+      <stop
+         style="stop-color:#6fd5d9;stop-opacity:1;"
+         offset="0"
+         id="stop10" />
+    </linearGradient>
+    <linearGradient
+       id="bg"
+       x1="0"
+       y1="0"
+       x2="1100"
+       y2="760"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-7.3297358e-7)">
+      <stop
+         stop-color="#F7F3E8"
+         id="stop1"
+         offset="0"
+         style="stop-color:#fff6e0;stop-opacity:1;" />
+      <stop
+         offset="1"
+         stop-color="#E7F1EC"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       id="header"
+       x1="0"
+       y1="0"
+       x2="1100"
+       y2="0"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#113946"
+         id="stop3" />
+      <stop
+         offset="1"
+         stop-color="#1D5B79"
+         id="stop4" />
+    </linearGradient>
+    <filter
+       id="shadow"
+       x="-0.0040007801"
+       y="-0.0090926821"
+       width="1.0080016"
+       height="1.0181854">
+      <feDropShadow
+         dx="0"
+         dy="8"
+         stdDeviation="10"
+         flood-color="#113946"
+         flood-opacity="0.12" />
+    </filter>
+    <marker
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="8"
+       refY="5"
+       markerWidth="7"
+       markerHeight="7"
+       orient="auto-start-reverse">
+      <path
+         d="M 0 0 L 10 5 L 0 10 z"
+         fill="#1D5B79"
+         id="path4" />
+    </marker>
+    <style
+       id="style4">
+      .title { font: 700 32px 'DejaVu Sans', Arial, sans-serif; fill: #FFFFFF; }
+      .subtitle { font: 400 16px 'DejaVu Sans', Arial, sans-serif; fill: #D9E8EE; }
+      .box-title { font: 700 22px 'DejaVu Sans', Arial, sans-serif; fill: #113946; }
+      .box-text { font: 400 16px 'DejaVu Sans', Arial, sans-serif; fill: #2F4858; }
+      .note-title { font: 700 18px 'DejaVu Sans', Arial, sans-serif; fill: #7C4F21; }
+      .note-text { font: 400 14px 'DejaVu Sans', Arial, sans-serif; fill: #5F4B32; }
+      .label { font: 700 14px 'DejaVu Sans', Arial, sans-serif; fill: #1D5B79; letter-spacing: 0.08em; }
+    </style>
+    <marker
+       id="arrow-3"
+       viewBox="0 0 10 10"
+       refX="8"
+       refY="5"
+       markerWidth="7"
+       markerHeight="7"
+       orient="auto-start-reverse">
+      <path
+         d="M 0,0 10,5 0,10 Z"
+         fill="#1d5b79"
+         id="path4-6" />
+    </marker>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient8"
+       id="linearGradient7"
+       gradientUnits="userSpaceOnUse"
+       x1="0"
+       y1="0"
+       x2="1100"
+       y2="0"
+       gradientTransform="matrix(1.0468181,0,0,8.2451362,-23.850731,-196.43674)" />
+  </defs>
+  <rect
+     x="1.2729039"
+     y="1.4464773"
+     width="1101.2527"
+     height="758.55255"
+     rx="23.029999"
+     fill="url(#header)"
+     id="rect5-5"
+     style="fill:url(#linearGradient7);stroke-width:2.93789" />
+  <rect
+     x="782.71649"
+     y="495.63934"
+     width="250"
+     height="120"
+     rx="24"
+     fill="#f4f0fa"
+     stroke="#9a84c2"
+     stroke-width="2"
+     filter="url(#shadow)"
+     id="rect33"
+     transform="matrix(1.0002933,0,0,0.92775294,-26.266211,41.765298)" />
+  <text
+     x="786.71649"
+     y="541.63934"
+     class="box-title"
+     id="text34"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:22px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Backtesting</text>
+  <text
+     x="786.71649"
+     y="569.63934"
+     class="box-text"
+     id="text35"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Held-out period evaluation,</text>
+  <text
+     x="786.71649"
+     y="591.63934"
+     class="box-text"
+     id="text36"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">calibration, daily metrics</text>
+  <rect
+     x="24"
+     y="24"
+     width="1052"
+     height="92"
+     rx="22"
+     fill="url(#header)"
+     id="rect5" />
+  <text
+     x="56"
+     y="68"
+     class="title"
+     id="text5">Player Churn Prediction Architecture</text>
+  <text
+     x="56"
+     y="94"
+     class="subtitle"
+     id="text6">Synthetic data generation, medallion pipelines, model training, MLflow registry, batch inference, and backtesting</text>
+  <text
+     x="151.63066"
+     y="162.49663"
+     class="label"
+     id="text7"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:14px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">DATA FOUNDATION</text>
+  <text
+     x="467.25266"
+     y="158.26808"
+     class="label"
+     id="text8"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:14px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">FEATURE + MODEL LAYER</text>
+  <text
+     x="827.25262"
+     y="158.26808"
+     class="label"
+     id="text9"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:14px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">OPERATIONS</text>
+  <text
+     x="-547.58008"
+     y="36.966797"
+     class="box-title"
+     id="text10"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:22px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif"
+     transform="rotate(-90)">Synthetic Data</text>
+  <text
+     x="135.25037"
+     y="194.69177"
+     class="box-text"
+     id="text11"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Players, sessions, and</text>
+  <text
+     x="134.2793"
+     y="215.29834"
+     class="box-text"
+     id="text12"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">transactions generated with</text>
+  <text
+     x="135.25037"
+     y="274.69177"
+     class="box-text"
+     id="text13"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">behavioral rules in PySpark</text>
+  <rect
+     x="70"
+     y="350"
+     width="250"
+     height="110"
+     rx="24"
+     fill="#f5f1ff"
+     stroke="#9c89c8"
+     stroke-width="2"
+     filter="url(#shadow)"
+     id="rect13"
+     transform="matrix(1.158352,0,0,0.81737493,26.900196,-26.167193)"
+     style="stroke-width:2.00039;stroke-dasharray:none" />
+  <text
+     x="132"
+     y="286"
+     class="box-title"
+     id="text14"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:22px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Bronze</text>
+  <text
+     x="132"
+     y="314"
+     class="box-text"
+     id="text15"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Raw event tables stored as</text>
+  <text
+     x="132"
+     y="336"
+     class="box-text"
+     id="text16"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Parquet datasets</text>
+  <rect
+     x="70"
+     y="500"
+     width="250"
+     height="120"
+     rx="24"
+     fill="#eaf6f1"
+     stroke="#6aa68a"
+     stroke-width="2"
+     filter="url(#shadow)"
+     id="rect16"
+     transform="matrix(1.1427193,0,0,0.80724354,29.518013,3.16969)" />
+  <text
+     x="132"
+     y="436"
+     class="box-title"
+     id="text17"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:22px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Silver</text>
+  <text
+     x="132"
+     y="464"
+     class="box-text"
+     id="text18"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Cleaned events, deduplication,</text>
+  <text
+     x="132"
+     y="486"
+     class="box-text"
+     id="text19"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">balance logic, trusted source</text>
+  <rect
+     x="131.0029"
+     y="541.0058"
+     width="260"
+     height="120"
+     rx="24"
+     fill="#eaf2fb"
+     stroke="#6b9ac4"
+     stroke-width="2"
+     filter="url(#shadow)"
+     id="rect19"
+     transform="matrix(1.1173616,0,0,1.0081674,-42.403165,15.48917)" />
+  <text
+     x="129.0029"
+     y="591.0058"
+     class="box-title"
+     id="text20"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:22px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Gold</text>
+  <text
+     x="129.0029"
+     y="619.0058"
+     class="box-text"
+     id="text21"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Player snapshots, rolling</text>
+  <text
+     x="129.0029"
+     y="641.0058"
+     class="box-text"
+     id="text22"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">behavior features, churn labels</text>
+  <text
+     x="129.0029"
+     y="663.0058"
+     class="box-text"
+     id="text23"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">with strict time causality</text>
+  <rect
+     x="464.68564"
+     y="317.85052"
+     width="260"
+     height="120"
+     rx="24"
+     fill="#fff1ec"
+     stroke="#d98b73"
+     stroke-width="2"
+     filter="url(#shadow)"
+     id="rect23"
+     transform="matrix(1.0754675,0,0,0.99938783,-61.028922,0.23130769)" />
+  <text
+     x="468.68564"
+     y="357.85052"
+     class="box-title"
+     id="text24"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:22px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Model Training</text>
+  <text
+     x="468.68564"
+     y="385.85052"
+     class="box-text"
+     id="text25"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Spark ML pipeline, CV, class</text>
+  <text
+     x="468.68564"
+     y="407.85052"
+     class="box-text"
+     id="text26"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">weighting, threshold tuning</text>
+  <rect
+     x="464.68564"
+     y="495.85052"
+     width="260"
+     height="110"
+     rx="24"
+     fill="#f8f6e7"
+     stroke="#b6a661"
+     stroke-width="2"
+     filter="url(#shadow)"
+     id="rect26"
+     transform="matrix(1.0628891,0,0,0.99944223,-55.190452,6.3072499)" />
+  <text
+     x="468.68564"
+     y="541.85052"
+     class="box-title"
+     id="text27"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:22px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">MLflow</text>
+  <text
+     x="468.68564"
+     y="569.85052"
+     class="box-text"
+     id="text28"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Experiments, artifacts, model</text>
+  <text
+     x="468.68564"
+     y="591.85052"
+     class="box-text"
+     id="text29"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">registry, reproducibility</text>
+  <rect
+     x="782.71649"
+     y="317.63934"
+     width="250"
+     height="120"
+     rx="24"
+     fill="#eef7fb"
+     stroke="#79afc4"
+     stroke-width="2"
+     filter="url(#shadow)"
+     id="rect29"
+     transform="matrix(0.99989277,0,0,1.0270984,-25.902662,-8.5916541)" />
+  <text
+     x="786.71649"
+     y="357.63934"
+     class="box-title"
+     id="text30"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:22px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Batch Inference</text>
+  <text
+     x="786.71649"
+     y="385.63934"
+     class="box-text"
+     id="text31"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">Daily scoring from the</text>
+  <text
+     x="786.71649"
+     y="407.63934"
+     class="box-text"
+     id="text32"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">production model in MLflow</text>
+  <text
+     x="786.71649"
+     y="429.63934"
+     class="box-text"
+     id="text33"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:16px;line-height:normal;font-family:'DejaVu Sans', Arial, sans-serif">with player risk levels</text>
+  <line
+     x1="248.32306"
+     y1="506.57077"
+     x2="248.32306"
+     y2="546.5708"
+     stroke="#1d5b79"
+     stroke-width="4"
+     marker-end="url(#arrow)"
+     id="line40" />
+  <line
+     x1="247.79556"
+     y1="356"
+     x2="247.79556"
+     y2="396"
+     stroke="#1d5b79"
+     stroke-width="4"
+     marker-end="url(#arrow)"
+     id="line41" />
+  <rect
+     style="opacity:0;fill:#6f4d00;fill-opacity:0;stroke:#d9946f;stroke-width:2.01;stroke-linejoin:miter;stroke-dasharray:none;paint-order:stroke fill markers"
+     id="rect1"
+     width="152.13597"
+     height="270.34235"
+     x="81.969147"
+     y="310.91803" />
+  <rect
+     style="opacity:0;fill:#6f4d00;fill-opacity:0;stroke:#d9946f;stroke-width:2.01;stroke-linejoin:miter;stroke-dasharray:none;paint-order:stroke fill markers"
+     id="rect2"
+     width="345.86307"
+     height="311.93347"
+     x="31.740599"
+     y="314.12247" />
+  <rect
+     style="opacity:0;fill:#6f4d00;fill-opacity:0;stroke:#d9946f;stroke-width:2.01;stroke-linejoin:miter;stroke-dasharray:none;paint-order:stroke fill markers"
+     id="rect3"
+     width="348.05206"
+     height="316.31146"
+     x="29.551592"
+     y="345.86307" />
+  <text
+     xml:space="preserve"
+     id="text3"
+     style="writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect4);display:inline;opacity:0;fill:#6f4d00;fill-opacity:0;stroke:#d9946f;stroke-width:2.01;stroke-linejoin:miter;stroke-dasharray:none;paint-order:stroke fill markers" />
+  <text
+     xml:space="preserve"
+     id="text4"
+     style="writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect6);display:inline;opacity:0;fill:#6f4d00;fill-opacity:0;stroke:#d9946f;stroke-width:2.01;stroke-linejoin:miter;stroke-dasharray:none;paint-order:stroke fill markers" />
+  <rect
+     x="464.68564"
+     y="317.85052"
+     width="260"
+     height="120"
+     rx="24"
+     fill="#fff1ec"
+     stroke="#d98b73"
+     stroke-width="2"
+     filter="url(#shadow)"
+     id="rect7"
+     transform="matrix(4.9773254,-0.02787081,-0.05055908,6.2402969,-2407.685,-1960.1836)"
+     style="display:none;opacity:1;mix-blend-mode:normal;fill:#ffffff;fill-opacity:0.526969;stroke:#ffffff;stroke-width:1.98193;stroke-miterlimit:0;stroke-dasharray:none;stroke-opacity:0"
+     inkscape:transform-center-x="2.2185001"
+     inkscape:transform-center-y="-14.463555" />
+  <path
+     style="opacity:0;fill:#6f4d00;fill-opacity:0;stroke:#d9946f;stroke-width:2.01;stroke-linejoin:miter;stroke-dasharray:none;paint-order:stroke fill markers"
+     d="m 50.347155,226.5622 229.845705,-51.44166 -9.85053,20.79556 -26.26808,-32.8351 72.23722,7.66153 12.03954,68.95371"
+     id="path6" />
+</svg>

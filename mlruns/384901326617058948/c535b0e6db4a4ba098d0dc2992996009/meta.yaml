@@ -1,0 +1,14 @@
+artifact_uri: file:///home/jim/bet/mlruns/384901326617058948/c535b0e6db4a4ba098d0dc2992996009/artifacts
+end_time: 1774431226612
+entry_point_name: ''
+experiment_id: '384901326617058948'
+lifecycle_stage: active
+run_id: c535b0e6db4a4ba098d0dc2992996009
+run_name: threshold_optimization
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774431214328
+status: 3
+tags: []
+user_id: jim

@@ -1,0 +1,7 @@
+artifact_location: file:///home/jim/bet/mlruns/196883005483245132
+creation_time: 1774712914353
+experiment_id: '196883005483245132'
+last_update_time: 1774712914353
+lifecycle_stage: active
+name: backtesting
+workspace: default
