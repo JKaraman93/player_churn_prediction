@@ -176,7 +176,7 @@ This helps connect model quality to how the scoring system would behave operatio
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/JKaraman93/bet.git
 cd bet
 ```
 
