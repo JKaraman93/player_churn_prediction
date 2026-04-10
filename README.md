@@ -257,6 +257,39 @@ python src/bet/models/inference.py 2024-06-20
 python src/bet/evaluation/backtest.py
 ```
 
+## Run With Docker
+
+This project now includes a minimal Docker setup for learning and reproducible local execution.
+
+### Build the image
+
+```bash
+docker build -t bet-project .
+```
+
+### Run the default command
+
+The image currently starts by generating the Bronze layer:
+
+```bash
+docker run --rm -v "$(pwd):/app" bet-project
+```
+
+### Run a different pipeline step
+
+You can override the default command to run any project script:
+
+```bash
+docker run --rm -v "$(pwd):/app" bet-project python src/bet/pipelines/create_silver_dataset.py
+docker run --rm -v "$(pwd):/app" bet-project python src/bet/pipelines/create_gold_dataset.py
+docker run --rm -v "$(pwd):/app" bet-project python src/bet/models/logistic_regression.py
+```
+
+Why mount the project directory:
+
+- outputs written in the container stay available on your machine
+- you can edit code locally and rerun without rebuilding for every small change
+
 ## Example Outputs
 
 These screenshot-style visuals are based on artifacts already stored in the repository and help show the project as a complete workflow rather than only code.
