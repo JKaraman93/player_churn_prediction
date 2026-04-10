@@ -35,12 +35,6 @@ Example output:
 
 ![Project architecture](docs/architecture-diagram.svg)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/JKaraman93/bet.git
-   cd bet
-   ```
-
 ```text
 src/bet/
 ├── ingestion/     # Synthetic data generation and player behavior simulation
