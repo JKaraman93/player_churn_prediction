@@ -173,20 +173,27 @@ This helps connect model quality to how the scoring system would behave operatio
 
 ## Quick Start
 
-### 1. Create and activate a virtual environment
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd bet
+```
+
+### 2. Create and activate a virtual environment
 
 ```bash
 python -m venv venv
 source venv/bin/activate
 ```
 
-### 2. Install the package
+### 3. Install the package
 
 ```bash
 pip install -e .
 ```
 
-### 3. Generate the datasets
+### 4. Generate the datasets
 
 ```bash
 python src/bet/pipelines/create_bronze_dataset.py
@@ -194,19 +201,19 @@ python src/bet/pipelines/create_silver_dataset.py
 python src/bet/pipelines/create_gold_dataset.py
 ```
 
-### 4. Train the model
+### 5. Train the model
 
 ```bash
 python src/bet/models/logistic_regression.py
 ```
 
-### 5. Run batch inference for one day
+### 6. Run batch inference for one day
 
 ```bash
 python src/bet/models/inference.py 2024-06-20
 ```
 
-### 6. Run backtesting
+### 7. Run backtesting
 
 ```bash
 python src/bet/evaluation/backtest.py
@@ -290,4 +297,3 @@ If I wanted to extend the project later, the next logical steps would be:
 
 - add lightweight unit tests for feature and label logic
 - compare the baseline against tree-based models
-
