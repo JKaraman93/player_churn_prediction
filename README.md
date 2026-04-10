@@ -170,8 +170,8 @@ This helps connect model quality to how the scoring system would behave operatio
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/JKaraman93/bet.git
-cd bet
+git clone https://github.com/JKaraman93/player_churn_prediction.git
+cd player_churn_prediction
 ```
 
 ### 2. Create and activate a virtual environment

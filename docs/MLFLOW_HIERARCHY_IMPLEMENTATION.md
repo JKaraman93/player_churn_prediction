@@ -349,7 +349,7 @@ All changes are:
 
 ## Files Modified
 
-- `/home/jim/bet/src/bet/models/logistic_regression.py`: 80+ lines added (hierarchical MLflow implementation)
+- `/home/jim/player_churn_prediction/src/bet/models/logistic_regression.py`: 80+ lines added (hierarchical MLflow implementation)
 
 ## Git Status
 

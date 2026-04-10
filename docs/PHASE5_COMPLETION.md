@@ -279,7 +279,7 @@ Phase 7: Merge & Release (Remaining Tasks)
 
 To replicate validation:
 ```bash
-cd /home/jim/bet
+cd /home/jim/player_churn_prediction
 
 # Syntax validation
 python -m py_compile src/bet/models/*.py src/bet/evaluation/backtest.py
