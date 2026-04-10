@@ -23,3 +23,5 @@ htmlcov/
 .idea/
 *.swp
 *.swo
+
+.codex
