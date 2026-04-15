@@ -285,9 +285,19 @@ These screenshot-style visuals are based on artifacts already stored in the repo
 ![Backtest summary](docs/screenshots/backtest-results.svg)
 
 
+## Running Tests
+
+```bash
+pip install pytest
+pytest tests/ -v
+```
+
+The test suite covers constants, data utils, model metrics, and edge cases. More tests are planned for feature engineering and label logic.
+
 ## Possible Next Improvements
 
 If I wanted to extend the project later, the next logical steps would be:
 
-- add lightweight unit tests for feature and label logic
+- add integration tests for the full Bronze → Silver → Gold pipeline
+- add CI/CD with GitHub Actions to run tests and linting on PRs
 - compare the baseline against tree-based models
